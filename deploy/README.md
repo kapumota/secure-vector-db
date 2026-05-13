@@ -1,23 +1,74 @@
-### Deploy
+### Despliegue
 
-Este directorio contiene una configuración base para publicar la API con Docker.
+Este directorio contiene plantillas opcionales para publicar la API de **SecureVectorDB** en servicios cloud usando Docker.
+
+El despliegue principal recomendado para la entrega del proyecto es **Docker Compose local**, porque permite ejecutar la API en un contenedor y conservar SQLite mediante un volumen persistente.
+
+#### Despliegue principal recomendado
+
+Desde la raíz del proyecto:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+La API queda disponible en:
+
+```text
+http://127.0.0.1:8000
+```
+
+La documentación interactiva queda disponible en:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+Este modo permite probar:
+
+- estado del servicio con `/health`,
+- documentación Swagger con `/docs`,
+- autenticación con `X-API-Key`,
+- inserción de registros,
+- búsqueda por ID,
+- búsqueda por rango,
+- búsqueda semántica,
+- verificación de integridad Merkle,
+- persistencia SQLite mediante volumen Docker.
 
 #### Render
 
-1. Crea un nuevo servicio web desde el repositorio.
-2. Usa `deploy/render.yaml` como blueprint.
-3. Define `SECURE_VECTOR_DB_API_KEY` como variable secreta.
-4. Verifica `/health` y luego abre `/docs`.
+El archivo `render.example.yaml` es una plantilla opcional para desplegar la API en Render usando Docker.
 
-La variable `SECURE_VECTOR_DB_PATH=/data/secure_vector_db.sqlite` usa un disco persistente para que SQLite sobreviva reinicios del servicio.
+> Importante: Render Free puede servir para una demostración temporal, pero no debe considerarse el despliegue principal si se necesita persistencia SQLite. Para conservar la base de datos entre reinicios se requiere un servicio con disco persistente.
 
-#### Producción real
+La configuración recomendada para SQLite en Render usa:
 
-Para un entorno más exigente se recomienda:
+```env
+SECURE_VECTOR_DB_PATH=/data/secure_vector_db.sqlite
+```
 
-- usar una clave fuerte en `SECURE_VECTOR_DB_API_KEY`
-- habilitar HTTPS desde el proveedor
-- activar logs centralizados
-- agregar rate limiting
-- monitorear latencia, memoria y tamaño de la base
-- evaluar PostgreSQL u otro almacenamiento si habrá concurrencia alta.
+La ruta `/data` debe estar asociada a un disco persistente. Si no existe disco persistente, los datos pueden perderse cuando el servicio se reinicie o se redeploye.
+
+#### Variables principales
+
+```env
+SECURE_VECTOR_DB_PATH=/data/secure_vector_db.sqlite
+SECURE_VECTOR_DB_API_KEY=una-clave-larga-y-secreta
+SECURE_VECTOR_DB_RATE_LIMIT_PER_MINUTE=120
+SECURE_VECTOR_DB_VECTOR_INDEX=kd_tree
+SECURE_VECTOR_DB_EMBEDDING_MODEL=hash
+```
+
+#### Uso recomendado de Render
+
+Render debe considerarse una opción opcional para:
+
+- mostrar la API públicamente,
+- probar `/health`,
+- abrir `/docs`,
+- demostrar endpoints con `curl`,
+- validar el contenedor Docker en un entorno cloud.
+
+Para una demostración gratuita, la API puede funcionar, pero la persistencia de SQLite no está garantizada si no se configura un disco persistente.
