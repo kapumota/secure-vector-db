@@ -41,7 +41,7 @@ Este modo permite probar:
 
 El archivo `render.example.yaml` es una plantilla opcional para desplegar la API en Render usando Docker.
 
-> Importante: Render Free puede servir para una demostración temporal, pero no debe considerarse el despliegue principal si se necesita persistencia SQLite. Para conservar la base de datos entre reinicios se requiere un servicio con disco persistente.
+> Importante: **Render Free** puede servir para una demostración temporal, pero no debe considerarse el despliegue principal si se necesita persistencia SQLite. Para conservar la base de datos entre reinicios se requiere un servicio con disco persistente.
 
 La configuración recomendada para SQLite en Render usa:
 
