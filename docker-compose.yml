@@ -1,0 +1,16 @@
+services:
+  secure-vector-db:
+    build: .
+    container_name: secure-vector-db
+    ports:
+      - "8000:8000"
+    environment:
+      # Valores por defecto para desarrollo. En producción, definirlos en .env o en el proveedor cloud.
+      SECURE_VECTOR_DB_PATH: ${SECURE_VECTOR_DB_PATH:-/data/secure_vector_db.sqlite}
+      SECURE_VECTOR_DB_API_KEY: ${SECURE_VECTOR_DB_API_KEY:-change-me-in-production}
+    volumes:
+      - secure_vector_db_data:/data
+    restart: unless-stopped
+
+volumes:
+  secure_vector_db_data:

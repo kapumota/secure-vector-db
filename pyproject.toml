@@ -1,0 +1,15 @@
+[project]
+name = "secure-vector-db"
+version = "0.7.0"
+description = "Base de datos vectorial verificable con SQLite, B+ Tree, Merkle Tree, autenticación, API FastAPI, Docker, benchmarks y CI/CD."
+requires-python = ">=3.10"
+dependencies = ["numpy", "fastapi", "uvicorn"]
+
+[project.optional-dependencies]
+ann = ["faiss-cpu", "hnswlib"]
+
+[project.scripts]
+secure-vector-db = "secure_vector_db.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

@@ -1,0 +1,2 @@
+# Dependencias opcionales para Fase 3: embeddings reales
+sentence-transformers>=2.7.0

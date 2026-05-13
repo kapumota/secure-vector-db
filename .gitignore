@@ -1,0 +1,29 @@
+# Entornos virtuales
+vector/
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Bases locales
+*.sqlite
+*.db
+*.sqlite3
+
+# Variables secretas
+.env
+
+# Reportes generados
+reports/
+benchmark-results.json
+*.csv
+
+# Sistema
+.DS_Store
+Thumbs.db

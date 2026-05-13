@@ -1,0 +1,4 @@
+# Dependencias opcionales para Fase 2: índices ANN
+# Instala una de estas opciones según tu entorno.
+faiss-cpu
+hnswlib
