@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: secure-vector-db
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: SECURE_VECTOR_DB_PATH
+        value: /data/secure_vector_db.sqlite
+      - key: SECURE_VECTOR_DB_API_KEY
+        sync: false
+    disk:
+      name: secure-vector-db-data
+      mountPath: /data
+      sizeGB: 1
