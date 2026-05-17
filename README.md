@@ -1,4 +1,4 @@
-### SecureVectorDB v7
+### SecureVectorDB 
 
 **SecureVectorDB** es una base de datos vectorial verificable desarrollada en Python. Integra almacenamiento persistente, búsqueda semántica, estructuras de índices, autenticación por API key, verificación de integridad mediante Merkle Tree, API REST con FastAPI, Docker, pruebas automatizadas y benchmarks reproducibles.
 
