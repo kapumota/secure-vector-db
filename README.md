@@ -42,7 +42,7 @@ SecureVectorDB permite:
 - **API Key:** autenticación para operaciones protegidas.
 - **Rate limiting:** control básico de abuso por cliente/API key.
 - **Docker:** ejecución containerizada con volumen persistente.
-- **CLI:** comandos para insertar, borrar, buscar, consultar rangos, verificar y ejecutar demos.
+- **CLI:** comandos para insertar, borrar, buscar, consultar rangos, verificar y ejecutar demostraciones.
 - **Benchmarks:** medición de inserción, búsqueda, verificación, memoria y tamaño SQLite.
 - **CI/CD:** configuración para pruebas automáticas con GitHub Actions.
 - **Embeddings configurables:** modo liviano hash-based y modo semántico real con `sentence-transformers`.
@@ -52,7 +52,7 @@ SecureVectorDB permite:
 
 El proyecto está preparado como **software base inicial** de un sistema de recuperación semántica verificable.
 
-No se presentaa como una base de datos distribuida enterprise completamente terminada. Para ese nivel todavía serían necesarios componentes como replicación distribuida, consenso, monitoreo avanzado, control multiusuario robusto y escalabilidad horizontal.
+No se presenta como una base de datos distribuida enterprise completamente terminada. Para ese nivel todavía serían necesarios componentes como replicación distribuida, consenso, monitoreo avanzado, control multiusuario robusto y escalabilidad horizontal.
 
 
 #### Arquitectura del proyecto
