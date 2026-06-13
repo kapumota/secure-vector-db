@@ -44,7 +44,7 @@ SecureVectorDB permite:
 - **Docker:** ejecución containerizada con volumen persistente.
 - **CLI:** comandos para insertar, borrar, buscar, consultar rangos, verificar y ejecutar demostraciones.
 - **Benchmarks:** medición de inserción, búsqueda, verificación, memoria y tamaño SQLite.
-- **CI/CD:** configuración para pruebas automáticas con GitHub Actions.
+- **CI:** configuración para pruebas automáticas con GitHub Actions.
 - **Embeddings configurables:** modo liviano hash-based y modo semántico real con `sentence-transformers`.
 
 
@@ -709,7 +709,7 @@ Esto evita problemas como:
 - obtener resultados inconsistentes durante búsquedas.
 
 
-##### SQLite y concurrencia
+#### SQLite y concurrencia
 
 SQLite se usa como almacenamiento persistente local. Para soportar uso concurrente básico dentro del proceso de la API, el sistema lo configura de forma compatible con múltiples solicitudes manejadas por FastAPI.
 
@@ -809,23 +809,23 @@ Si `faiss-cpu` o `hnswlib` no están instalados, el benchmark puede marcar esos 
 
 SecureVectorDB fue desarrollado incrementalmente en cuatro fases principales.
 
-##### Fase 1: índices incrementales
+#### Fase 1: índices incrementales
 
 Se optimizó la actualización de índices para evitar reconstruir todo el B+ Tree y el índice vectorial después de cada inserción o eliminación. Ahora `insert()` y `delete()` actualizan solo el registro afectado.
 
-##### Fase 2: índices vectoriales configurables
+#### Fase 2: índices vectoriales configurables
 
 Se agregó una arquitectura de índices vectoriales intercambiables. El sistema usa `kd_tree` por defecto, pero puede usar `faiss`, `hnsw` o `auto` si las dependencias opcionales están instaladas.
 
-##### Fase 3: embeddings configurables
+#### Fase 3: embeddings configurables
 
 Se incorporó soporte para distintos generadores de embeddings. El modo `hash` permite pruebas ligeras y reproducibles, mientras que `sentence_transformers` permite usar embeddings semánticos reales.
 
-##### Fase 4: benchmarks comparativos
+#### Fase 4: benchmarks comparativos
 
 Se añadió un benchmark reproducible para comparar rendimiento entre `kd_tree`, `faiss` y `hnsw`, midiendo inserción, búsqueda por ID, búsqueda por rango, búsqueda semántica, verificación Merkle, memoria y tamaño SQLite.
 
-#### CI/CD
+#### CI
 
 El proyecto incluye configuración para GitHub Actions.
 
@@ -896,3 +896,18 @@ python benchmarks/benchmark.py --records 1000 --queries 100 --index kd_tree --js
 MIT License
 ```
 
+### Limpieza local del proyecto
+
+#### Comandos recomendados
+
+El repositorio incluye comandos reproducibles para limpiar artefactos locales sin tocar el entorno virtual `.secure_db`.
+
+```bash
+make clean
+make clean-cache
+make clean-build
+make clean-reports
+make clean-all
+```
+
+`make clean` elimina caches y artefactos de build. `make clean-reports` se deja separado para no borrar evidencia local por accidente.

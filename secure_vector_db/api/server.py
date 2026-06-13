@@ -8,6 +8,7 @@ from fastapi import Depends, FastAPI, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from secure_vector_db import __version__
 from secure_vector_db.api.auth import require_api_key
 from secure_vector_db.api.rate_limit import RateLimitMiddleware
 from secure_vector_db.database import SecureVectorDB
@@ -50,7 +51,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="SecureVectorDB API",
-    version="0.6.0",
+    version=__version__,
     description=(
         "API protegida por API key para una base vectorial verificable con "
         "persistencia SQLite, B+ Tree, embeddings configurables, indice vectorial configurable, rate limiting y Merkle root."

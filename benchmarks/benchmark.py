@@ -4,7 +4,6 @@ import argparse
 import csv
 import json
 import random
-import sqlite3
 import statistics
 import sys
 import tempfile
