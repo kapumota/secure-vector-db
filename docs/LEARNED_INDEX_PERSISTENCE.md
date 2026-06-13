@@ -62,3 +62,63 @@ Si los datos cambian por insercion o eliminacion, el modelo aprendido se desacti
 #### Alcance
 
 Esta fase no implementa drift detection avanzado. La deteccion de drift y reentrenamiento automatico quedan para una fase posterior.
+
+#### Riesgos y mitigaciones
+
+La persistencia del indice aprendido tiene riesgo medio porque modifica la carga durable de `SecureVectorDB`, agrega una tabla SQLite nueva y guarda metadata usada para activar un modelo aprendido despues de reabrir la base.
+
+El riesgo principal no es perder datos, sino activar un modelo aprendido que ya no representa la distribucion actual de claves. Para controlar ese riesgo, el sistema mantiene el B+ Tree como fuente exacta de verdad y valida la vigencia del modelo antes de usarlo.
+
+#### Riesgos tecnicos
+
+```text
+- Modelo aprendido obsoleto despues de inserciones o eliminaciones.
+- Metadata incompleta o inconsistente en kv_meta.
+- Segmentos persistidos que no coinciden con la metadata.
+- Cambio de distribucion de claves entre entrenamiento y reapertura.
+- Activacion accidental de un modelo entrenado sobre otra version de datos.
+```
+
+#### Controles aplicados
+
+```text
+- B+ Tree sigue siendo la fuente exacta de verdad.
+- El modelo aprendido solo se carga si el fingerprint de claves coincide.
+- La cantidad de segmentos persistidos debe coincidir con la metadata.
+- Si el fingerprint no coincide, el modelo persistido se descarta.
+- Si hay insercion o eliminacion, el learned index se desactiva.
+- Si hay insercion o eliminacion, el estado persistido se elimina.
+- Si el modelo no se puede cargar, la busqueda sigue funcionando por B+ Tree.
+```
+
+#### Impacto esperado
+
+```text
+Disponibilidad: baja afectacion, porque B+ Tree queda como fallback.
+Integridad: riesgo controlado por fingerprint y validacion de segmentos.
+Rendimiento: puede mejorar si el modelo es valido; si no, se desactiva.
+Mantenibilidad: mejora porque el modelo persistido tiene metadata verificable.
+```
+
+#### Politica de recuperacion
+
+Si la carga del modelo aprendido no es valida, el sistema debe operar en modo seguro:
+
+```text
+- desactivar learned index,
+- mantener busqueda exacta por B+ Tree,
+- eliminar metadata o segmentos inconsistentes,
+- permitir reentrenamiento explicito.
+```
+
+#### Evidencia esperada
+
+La fase debe estar cubierta por pruebas que validen:
+
+```text
+- persistencia de segmentos,
+- reapertura de base con modelo aprendido activo,
+- invalidacion despues de insercion,
+- invalidacion despues de eliminacion,
+- fallback correcto cuando el modelo no esta activo.
+```
