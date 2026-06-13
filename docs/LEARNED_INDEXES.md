@@ -62,3 +62,61 @@ python -m pytest -q
 #### Siguiente fase
 
 La Fase 2 debe agregar un enrutador de indice ordenado que use el indice aprendido como acelerador y el B+ Tree como fallback exacto.
+
+#### Fase 2 - Indice hibrido con fallback
+
+La Fase 2 conecta el indice aprendido con una garantia exacta mediante B+ Tree.
+
+El flujo de busqueda por ID queda asi:
+
+```text
+search_by_id(record_id)
+prediccion con LearnedPiecewiseIndex
+busqueda local en ventana inclusiva
+si encuentra el ID, retorna
+si no encuentra, fallback a B+ Tree
+```
+
+El B+ Tree sigue siendo la fuente exacta de verdad. El indice aprendido solo acelera cuando su ventana local contiene la clave buscada.
+
+#### Metricas del indice ordenado
+
+Las metricas expuestas son:
+
+```text
+learned_enabled
+learned_segments
+learned_max_error
+learned_avg_error
+learned_fallback_count
+learned_fallback_rate
+learned_window_size
+learned_lookup_count
+learned_trained_keys
+learned_disabled_reason
+```
+
+#### Seguridad del fallback
+
+Cuando se inserta o elimina un registro, el indice aprendido se desactiva. Esto evita consultar un modelo entrenado sobre una version anterior del conjunto de claves.
+
+Para reactivar el camino aprendido se debe entrenar nuevamente:
+
+```python
+db.train_learned_index(max_error=64)
+```
+
+#### API
+
+```http
+GET /indexes/ordered/stats
+```
+
+#### CLI
+
+```bash
+python -m secure_vector_db.cli --db demo.sqlite train-learned-index --max-error 64
+python -m secure_vector_db.cli --db demo.sqlite index-stats
+```
+
+El entrenamiento del indice aprendido en esta fase es en memoria. La persistencia del modelo aprendido queda reservada para una fase posterior.

@@ -18,6 +18,8 @@ DB_PATH_ENV = "SECURE_VECTOR_DB_PATH"
 VECTOR_INDEX_ENV = "SECURE_VECTOR_DB_VECTOR_INDEX"
 EMBEDDING_MODEL_ENV = "SECURE_VECTOR_DB_EMBEDDING_MODEL"
 EMBEDDING_MODEL_NAME_ENV = "SECURE_VECTOR_DB_EMBEDDING_MODEL_NAME"
+LEARNED_INDEX_ENV = "SECURE_VECTOR_DB_LEARNED_INDEX"
+LEARNED_MAX_ERROR_ENV = "SECURE_VECTOR_DB_LEARNED_MAX_ERROR"
 DEFAULT_DB_PATH = "secure_vector_db_api.sqlite"
 
 
@@ -35,6 +37,20 @@ def _configured_embedding_model_name() -> str | None:
     return os.environ.get(EMBEDDING_MODEL_NAME_ENV)
 
 
+def _configured_learned_index_enabled() -> bool:
+    value = os.environ.get(LEARNED_INDEX_ENV, "false").strip().lower()
+    return value in {"1", "true", "yes", "si"}
+
+
+def _configured_learned_max_error() -> int:
+    raw_value = os.environ.get(LEARNED_MAX_ERROR_ENV, "64")
+    try:
+        value = int(raw_value)
+    except ValueError:
+        return 64
+    return max(0, value)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     db_path = _configured_db_path()
@@ -42,7 +58,16 @@ async def lifespan(app: FastAPI):
     app.state.vector_index = _configured_vector_index()
     app.state.embedding_model = _configured_embedding_model()
     app.state.embedding_model_name = _configured_embedding_model_name()
-    app.state.db = SecureVectorDB.open(db_path, vector_index=app.state.vector_index, embedding_model=app.state.embedding_model, embedding_model_name=app.state.embedding_model_name)
+    app.state.learned_index_enabled = _configured_learned_index_enabled()
+    app.state.learned_max_error = _configured_learned_max_error()
+    app.state.db = SecureVectorDB.open(
+        db_path,
+        vector_index=app.state.vector_index,
+        embedding_model=app.state.embedding_model,
+        embedding_model_name=app.state.embedding_model_name,
+        learned_index_enabled=app.state.learned_index_enabled,
+        learned_max_error=app.state.learned_max_error,
+    )
     try:
         yield
     finally:
@@ -91,7 +116,7 @@ def handle_app_error(_, exc: SecureVectorDBError):
 
 @app.get("/health", tags=["system"])
 def health(db: SecureVectorDB = Depends(get_db), db_path: str = Depends(get_db_path)):
-    return {"status": "ok", "records": len(db.store), "root_hash": db.root_hash, "storage": db_path, "vector_index": db.vector_index.backend_name, "embedding_model": db.embedder.name, "embedding_dim": db.embedding_dim}
+    return {"status": "ok", "records": len(db.store), "root_hash": db.root_hash, "storage": db_path, "vector_index": db.vector_index.backend_name, "embedding_model": db.embedder.name, "embedding_dim": db.embedding_dim, "ordered_index": db.ordered_index_stats()}
 
 
 @app.post(
@@ -136,6 +161,11 @@ def semantic_search(q: str = Query(..., min_length=1), k: int = Query(3, ge=1), 
 @app.get("/verify", tags=["integrity"], dependencies=[Depends(require_api_key)], responses={401: {"model": ErrorResponse}})
 def verify(db: SecureVectorDB = Depends(get_db)):
     return {"valid": db.verify_dataset(), "root_hash": db.root_hash, "computed_root_hash": db.compute_root_hash()}
+
+
+@app.get("/indexes/ordered/stats", tags=["indexes"], dependencies=[Depends(require_api_key)], responses={401: {"model": ErrorResponse}})
+def ordered_index_stats(db: SecureVectorDB = Depends(get_db)):
+    return db.ordered_index_stats()
 
 
 @app.post("/verify/assert", tags=["integrity"], dependencies=[Depends(require_api_key)], responses={401: {"model": ErrorResponse}, 409: {"model": ErrorResponse}})

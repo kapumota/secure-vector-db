@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from secure_vector_db.errors import IntegrityError, RecordNotFoundError, ValidationError
 from secure_vector_db.indexes.bplus_tree import BPlusTree
+from secure_vector_db.indexes.ordered_index_router import OrderedIndexRouter
 from secure_vector_db.indexes.factory import create_vector_index
 from secure_vector_db.ml.embeddings import create_embedding_model
 from secure_vector_db.storage.record_store import Record, RecordStore
@@ -39,18 +40,32 @@ class SecureVectorDB:
     abrir la base. Los embeddings son hash-based y no corresponden a un LLM real.
     """
 
-    def __init__(self, embedding_dim: int = 8, bplus_order: int = 4, storage_path: str | Path | None = None, vector_index: str = "kd_tree", embedding_model: str = "hash", embedding_model_name: str | None = None):
+    def __init__(
+        self,
+        embedding_dim: int = 8,
+        bplus_order: int = 4,
+        storage_path: str | Path | None = None,
+        vector_index: str = "kd_tree",
+        embedding_model: str = "hash",
+        embedding_model_name: str | None = None,
+        learned_index_enabled: bool = False,
+        learned_max_error: int = 64,
+    ) -> None:
         if embedding_dim <= 0:
             raise ValidationError("embedding_dim debe ser positivo")
         if bplus_order < 3:
             raise ValidationError("bplus_order debe ser >= 3")
+        if learned_max_error < 0:
+            raise ValidationError("learned_max_error debe ser >= 0")
         self.bplus_order = bplus_order
+        self.learned_max_error = learned_max_error
         self.vector_index_backend = vector_index
         self.embedding_model_backend = embedding_model
         self.embedding_model_name = embedding_model_name
         self.embedder = create_embedding_model(embedding_model, embedding_dim, embedding_model_name)
         self.embedding_dim = self.embedder.dim
         self.id_index = BPlusTree[int, int](bplus_order)
+        self.ordered_index = OrderedIndexRouter(self.id_index)
         self.vector_index = create_vector_index(embedding_dim, vector_index)
         self._lock = RLock()
         self._durable: SQLiteRecordStore | None = SQLiteRecordStore(storage_path) if storage_path else None
@@ -60,10 +75,31 @@ class SecureVectorDB:
             self._load_from_durable()
         else:
             self._rebuild_indexes()
+        if learned_index_enabled:
+            self.train_learned_index(learned_max_error)
 
     @classmethod
-    def open(cls, path: str | Path, embedding_dim: int = 8, bplus_order: int = 4, vector_index: str = "kd_tree", embedding_model: str = "hash", embedding_model_name: str | None = None) -> "SecureVectorDB":
-        return cls(embedding_dim=embedding_dim, bplus_order=bplus_order, storage_path=path, vector_index=vector_index, embedding_model=embedding_model, embedding_model_name=embedding_model_name)
+    def open(
+        cls,
+        path: str | Path,
+        embedding_dim: int = 8,
+        bplus_order: int = 4,
+        vector_index: str = "kd_tree",
+        embedding_model: str = "hash",
+        embedding_model_name: str | None = None,
+        learned_index_enabled: bool = False,
+        learned_max_error: int = 64,
+    ) -> "SecureVectorDB":
+        return cls(
+            embedding_dim=embedding_dim,
+            bplus_order=bplus_order,
+            storage_path=path,
+            vector_index=vector_index,
+            embedding_model=embedding_model,
+            embedding_model_name=embedding_model_name,
+            learned_index_enabled=learned_index_enabled,
+            learned_max_error=learned_max_error,
+        )
 
     def _load_from_durable(self) -> None:
         assert self._durable is not None
@@ -94,6 +130,7 @@ class SecureVectorDB:
         toda la estructura después de cada insert/delete.
         """
         self.id_index = BPlusTree[int, int](self.bplus_order)
+        self.ordered_index = OrderedIndexRouter(self.id_index)
         self.vector_index = create_vector_index(self.embedding_dim, self.vector_index_backend)
         records = self.store.all()
         for record in records:
@@ -128,6 +165,7 @@ class SecureVectorDB:
                 self._durable.upsert(record)
             self.store.insert(record)
             self._index_record(record)
+            self._disable_learned_index("datos modificados despues del entrenamiento")
             self._sync_root()
             return record
 
@@ -140,6 +178,7 @@ class SecureVectorDB:
                 deleted = self._durable.delete(record_id) or deleted
             if deleted:
                 self._remove_from_indexes(record_id)
+                self._disable_learned_index("datos modificados despues del entrenamiento")
                 self._sync_root()
             return deleted
 
@@ -147,10 +186,29 @@ class SecureVectorDB:
         with self._lock:
             if not isinstance(record_id, int) or record_id < 0:
                 raise ValidationError("record_id debe ser un entero no negativo")
-            found = self.id_index.find(record_id)
-            if not found:
+            found_id = self.ordered_index.find(record_id)
+            if found_id is None:
                 return None
-            return self.store.get(found[0])
+            return self.store.get(found_id)
+
+    def train_learned_index(self, max_error: int = 64) -> Dict[str, Any]:
+        """Entrena el indice aprendido ordenado sobre los IDs actuales."""
+        with self._lock:
+            if max_error < 0:
+                raise ValidationError("max_error debe ser >= 0")
+            keys = [record.record_id for record in self.store.all()]
+            self.learned_max_error = max_error
+            return self.ordered_index.train(keys, max_error)
+
+    def ordered_index_stats(self) -> Dict[str, Any]:
+        """Devuelve metricas del indice ordenado hibrido."""
+        with self._lock:
+            return self.ordered_index.stats()
+
+    def _disable_learned_index(self, reason: str) -> None:
+        # Desactiva el indice aprendido si los datos cambiaron.
+        if self.ordered_index.enabled:
+            self.ordered_index.disable(reason)
 
     def get_or_raise(self, record_id: int) -> Record:
         rec = self.search_by_id(record_id)
