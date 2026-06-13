@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -10,8 +11,29 @@ from secure_vector_db.errors import SecureVectorDBError
 DEFAULT_DB_PATH = Path("secure_vector_db.sqlite")
 
 
-def build_demo_db(path: Path | None = None, vector_index: str = "kd_tree", embedding_model: str = "hash", embedding_model_name: str | None = None) -> SecureVectorDB:
-    db = SecureVectorDB.open(path, vector_index=vector_index, embedding_model=embedding_model, embedding_model_name=embedding_model_name) if path else SecureVectorDB(embedding_dim=8, vector_index=vector_index, embedding_model=embedding_model, embedding_model_name=embedding_model_name)
+def build_demo_db(
+    path: Path | None = None,
+    vector_index: str = "kd_tree",
+    embedding_model: str = "hash",
+    embedding_model_name: str | None = None,
+    learned_index_enabled: bool = False,
+    learned_max_error: int = 64,
+) -> SecureVectorDB:
+    db = SecureVectorDB.open(
+        path,
+        vector_index=vector_index,
+        embedding_model=embedding_model,
+        embedding_model_name=embedding_model_name,
+        learned_index_enabled=learned_index_enabled,
+        learned_max_error=learned_max_error,
+    ) if path else SecureVectorDB(
+        embedding_dim=8,
+        vector_index=vector_index,
+        embedding_model=embedding_model,
+        embedding_model_name=embedding_model_name,
+        learned_index_enabled=learned_index_enabled,
+        learned_max_error=learned_max_error,
+    )
     if len(db.store) == 0:
         db.insert(1, "base de datos vectorial con arbol b plus", {"topic": "database"})
         db.insert(2, "criptografia con arbol de merkle para integridad", {"topic": "crypto"})
@@ -21,18 +43,44 @@ def build_demo_db(path: Path | None = None, vector_index: str = "kd_tree", embed
     return db
 
 
-def open_db(path: Path, vector_index: str = "kd_tree", embedding_model: str = "hash", embedding_model_name: str | None = None) -> SecureVectorDB:
-    return SecureVectorDB.open(path, vector_index=vector_index, embedding_model=embedding_model, embedding_model_name=embedding_model_name)
+def open_db(
+    path: Path,
+    vector_index: str = "kd_tree",
+    embedding_model: str = "hash",
+    embedding_model_name: str | None = None,
+    learned_index_enabled: bool = False,
+    learned_max_error: int = 64,
+) -> SecureVectorDB:
+    return SecureVectorDB.open(
+        path,
+        vector_index=vector_index,
+        embedding_model=embedding_model,
+        embedding_model_name=embedding_model_name,
+        learned_index_enabled=learned_index_enabled,
+        learned_max_error=learned_max_error,
+    )
+
+
+def open_db_from_args(args: argparse.Namespace) -> SecureVectorDB:
+    return open_db(
+        args.db,
+        args.index,
+        args.embedding,
+        args.embedding_model_name,
+        args.learned_index,
+        args.learned_max_error,
+    )
 
 
 def cmd_demo(args: argparse.Namespace) -> None:
-    db = build_demo_db(args.db if args.persist else None, args.index, args.embedding, args.embedding_model_name)
+    db = build_demo_db(args.db if args.persist else None, args.index, args.embedding, args.embedding_model_name, args.learned_index, args.learned_max_error)
     print("SecureVectorDB demo")
     print("Registros:", len(db.store))
     print("Root hash:", db.root_hash)
     print("Verificacion:", db.verify_dataset())
     print("Embedding:", db.embedder.name, getattr(db.embedder, "model_name", ""))
     print("Indice vectorial:", db.vector_index.backend_name)
+    print("Indice aprendido:", db.ordered_index_stats())
 
     print("\nBusqueda por ID=2:")
     print(db.search_by_id(2))
@@ -54,7 +102,7 @@ def cmd_demo(args: argparse.Namespace) -> None:
 
 
 def cmd_insert(args: argparse.Namespace) -> None:
-    db = open_db(args.db, args.index, args.embedding, args.embedding_model_name)
+    db = open_db_from_args(args)
     metadata = {"source": "cli"} if args.topic is None else {"topic": args.topic}
     db.insert(args.id, args.text, metadata)
     print(f"Insertado id={args.id}. Registros={len(db.store)} Root={db.root_hash}")
@@ -62,7 +110,7 @@ def cmd_insert(args: argparse.Namespace) -> None:
 
 
 def cmd_delete(args: argparse.Namespace) -> None:
-    db = open_db(args.db, args.index, args.embedding, args.embedding_model_name)
+    db = open_db_from_args(args)
     deleted = db.delete(args.id)
     print("Eliminado" if deleted else "No existia")
     print("Root hash:", db.root_hash)
@@ -70,7 +118,7 @@ def cmd_delete(args: argparse.Namespace) -> None:
 
 
 def cmd_get(args: argparse.Namespace) -> None:
-    db = open_db(args.db, args.index, args.embedding, args.embedding_model_name)
+    db = open_db_from_args(args)
     rec = db.search_by_id(args.id)
     if rec is None:
         print(f"No encontrado: id={args.id}")
@@ -80,27 +128,40 @@ def cmd_get(args: argparse.Namespace) -> None:
 
 
 def cmd_range(args: argparse.Namespace) -> None:
-    db = open_db(args.db, args.index, args.embedding, args.embedding_model_name)
+    db = open_db_from_args(args)
     for rec in db.search_by_range(args.start, args.end):
         print(f"{rec.record_id}\t{rec.text}\t{rec.metadata}")
     db.close()
 
 
 def cmd_search(args: argparse.Namespace) -> None:
-    db = open_db(args.db, args.index, args.embedding, args.embedding_model_name)
+    db = open_db_from_args(args)
     for rec, dist in db.semantic_search(args.query, k=args.k):
         print(f"id={rec.record_id}\tdist={dist:.4f}\t{rec.text}")
     db.close()
 
 
 def cmd_verify(args: argparse.Namespace) -> None:
-    db = open_db(args.db, args.index, args.embedding, args.embedding_model_name)
+    db = open_db_from_args(args)
     ok = db.verify_dataset()
     print("OK" if ok else "ALTERADO")
     print("Root hash:", db.root_hash)
     db.close()
     if not ok:
         sys.exit(3)
+
+def cmd_train_learned_index(args: argparse.Namespace) -> None:
+    db = open_db(args.db, args.index, args.embedding, args.embedding_model_name)
+    stats = db.train_learned_index(args.max_error)
+    print(json.dumps(stats, ensure_ascii=False, indent=2, sort_keys=True))
+    db.close()
+
+
+def cmd_index_stats(args: argparse.Namespace) -> None:
+    db = open_db_from_args(args)
+    print(json.dumps(db.ordered_index_stats(), ensure_ascii=False, indent=2, sort_keys=True))
+    db.close()
+
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -109,6 +170,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--index", choices=["kd_tree", "faiss", "hnsw", "auto"], default="kd_tree", help="backend de indice vectorial")
     parser.add_argument("--embedding", choices=["hash", "sentence_transformers", "auto"], default="hash", help="modelo de embeddings")
     parser.add_argument("--embedding-model-name", default=None, help="nombre Hugging Face para sentence-transformers")
+    parser.add_argument("--learned-index", action="store_true", help="activa indice aprendido al abrir la base")
+    parser.add_argument("--learned-max-error", type=int, default=64, help="error maximo para entrenar indice aprendido")
     sub = parser.add_subparsers(dest="command")
 
     p = sub.add_parser("demo", help="ejecuta una demo completa")
@@ -142,6 +205,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("verify", help="verifica integridad Merkle")
     p.set_defaults(func=cmd_verify)
+
+    p = sub.add_parser("train-learned-index", help="entrena el indice aprendido ordenado")
+    p.add_argument("--max-error", type=int, default=64)
+    p.set_defaults(func=cmd_train_learned_index)
+
+    p = sub.add_parser("index-stats", help="muestra metricas del indice ordenado")
+    p.set_defaults(func=cmd_index_stats)
     return parser
 
 
