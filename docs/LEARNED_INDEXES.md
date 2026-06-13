@@ -138,3 +138,13 @@ Documento relacionado:
 ```text
 docs/LEARNED_INDEX_PERSISTENCE.md
 ```
+
+#### Riesgo controlado de persistencia
+
+La persistencia del modelo aprendido se considera de riesgo medio. El riesgo se controla manteniendo B+ Tree como fuente exacta, validando fingerprint de claves antes de cargar segmentos y eliminando el modelo persistido cuando los datos cambian.
+
+Documento relacionado:
+
+```text
+docs/LEARNED_INDEX_PERSISTENCE.md
+```
