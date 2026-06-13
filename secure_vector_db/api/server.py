@@ -168,6 +168,11 @@ def ordered_index_stats(db: SecureVectorDB = Depends(get_db)):
     return db.ordered_index_stats()
 
 
+@app.get("/indexes/ordered/explain/{record_id}", tags=["indexes"], dependencies=[Depends(require_api_key)], responses={401: {"model": ErrorResponse}})
+def ordered_index_explain(record_id: int, db: SecureVectorDB = Depends(get_db)):
+    return db.explain_search_by_id(record_id)
+
+
 @app.post("/verify/assert", tags=["integrity"], dependencies=[Depends(require_api_key)], responses={401: {"model": ErrorResponse}, 409: {"model": ErrorResponse}})
 def assert_verify(db: SecureVectorDB = Depends(get_db)):
     db.assert_integrity()

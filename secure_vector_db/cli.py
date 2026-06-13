@@ -163,6 +163,12 @@ def cmd_index_stats(args: argparse.Namespace) -> None:
     db.close()
 
 
+def cmd_explain_id(args: argparse.Namespace) -> None:
+    db = open_db_from_args(args)
+    print(json.dumps(db.explain_search_by_id(args.record_id), ensure_ascii=False, indent=2, sort_keys=True))
+    db.close()
+
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="SecureVectorDB: base de datos vectorial verificable")
@@ -212,6 +218,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("index-stats", help="muestra metricas del indice ordenado")
     p.set_defaults(func=cmd_index_stats)
+
+    p = sub.add_parser("explain-id", help="explica la busqueda por ID")
+    p.add_argument("record_id", type=int)
+    p.set_defaults(func=cmd_explain_id)
     return parser
 
 

@@ -205,6 +205,13 @@ class SecureVectorDB:
         with self._lock:
             return self.ordered_index.stats()
 
+    def explain_search_by_id(self, record_id: int) -> Dict[str, Any]:
+        """Devuelve un explain plan para la busqueda por ID."""
+        with self._lock:
+            if not isinstance(record_id, int) or record_id < 0:
+                raise ValidationError("record_id debe ser un entero no negativo")
+            return self.ordered_index.explain(record_id)
+
     def _disable_learned_index(self, reason: str) -> None:
         # Desactiva el indice aprendido si los datos cambiaron.
         if self.ordered_index.enabled:

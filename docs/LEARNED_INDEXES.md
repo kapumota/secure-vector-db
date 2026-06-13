@@ -120,3 +120,11 @@ python -m secure_vector_db.cli --db demo.sqlite index-stats
 ```
 
 El entrenamiento del indice aprendido en esta fase es en memoria. La persistencia del modelo aprendido queda reservada para una fase posterior.
+
+#### Observabilidad y benchmark
+
+La Fase 3.5 agrega explain plan, endpoint de explicabilidad, CLI de explicabilidad, benchmark comparativo y policy recommendation.
+
+Documento relacionado:
+
+docs/LEARNED_OBSERVABILITY.md
