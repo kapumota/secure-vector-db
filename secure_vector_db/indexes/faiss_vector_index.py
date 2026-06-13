@@ -49,8 +49,10 @@ class FaissVectorIndex:
         rid = int(record_id)
         existed = self._vectors.pop(rid, None) is not None
         if existed:
-            ids = np.asarray([rid], dtype="int64")
-            self._index.remove_ids(ids)
+            ids = np.ascontiguousarray(np.asarray([rid], dtype="int64"))
+            # FAISS usa selectores para borrar identificadores de forma tipada.
+            selector = self._faiss.IDSelectorBatch(ids.size, self._faiss.swig_ptr(ids))
+            self._index.remove_ids(selector)
         return existed
 
     def rebuild(self, items: Iterable[Tuple[int, Sequence[float]]]) -> None:

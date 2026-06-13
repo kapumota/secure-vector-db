@@ -1,15 +1,29 @@
-# Entornos virtuales
-vector/
+# Entorno virtual local del proyecto
+.secure_db/
+
+# Otros entornos virtuales posibles
 .venv/
 venv/
 env/
+vector/
 
 # Python
 __pycache__/
+*.py[cod]
 *.pyc
+*.pyo
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Build y empaquetado
+build/
+dist/
+*.egg-info/
 
 # Bases locales
 *.sqlite
@@ -18,12 +32,17 @@ __pycache__/
 
 # Variables secretas
 .env
+.env.*
+!.env.example
 
 # Reportes generados
 reports/
 benchmark-results.json
-*.csv
 
 # Sistema
 .DS_Store
 Thumbs.db
+# Entorno local
+# Caches de herramientas
+# Artefactos de build
+# Reportes locales

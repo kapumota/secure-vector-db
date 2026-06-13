@@ -1,14 +1,20 @@
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import sqlite3
 
 import pytest
 from fastapi.testclient import TestClient
 
+from benchmarks.benchmark import compare_backends, run_benchmark, write_csv_report
 from secure_vector_db.api.auth import DEFAULT_DEV_API_KEY
+from secure_vector_db.api.rate_limit import InMemoryRateLimiter
 from secure_vector_db.api.server import app
 from secure_vector_db.database import SecureVectorDB
 from secure_vector_db.errors import IntegrityError, ValidationError
 from secure_vector_db.indexes.bplus_tree import BPlusTree
+from secure_vector_db.indexes.factory import create_vector_index
+from secure_vector_db.indexes.kd_tree_vector_index import KDTreeVectorIndex
+from secure_vector_db.ml.embeddings import HashEmbeddingModel, create_embedding_model, euclidean
 
 
 def test_insert_find_verify():
@@ -162,11 +168,7 @@ def test_api_documents_auth_and_errors(tmp_path: Path, monkeypatch):
         assert found.status_code == 200
         assert found.json()["text"] == "api auth insert"
 
-from concurrent.futures import ThreadPoolExecutor
 
-from secure_vector_db.api.rate_limit import InMemoryRateLimiter
-from secure_vector_db.indexes.kd_tree_vector_index import KDTreeVectorIndex
-from secure_vector_db.ml.embeddings import euclidean
 
 
 def test_kd_tree_vector_index_matches_exact_linear_order():
@@ -246,7 +248,6 @@ def test_delete_updates_indexes_incrementally(monkeypatch):
     assert db.vector_index.size == 0
     assert db.verify_dataset()
 
-from secure_vector_db.indexes.factory import create_vector_index
 
 
 def test_vector_index_backend_is_configurable_with_kd_tree():
@@ -268,7 +269,6 @@ def test_invalid_vector_index_backend_is_rejected():
         create_vector_index(8, "unknown")
 
 
-from secure_vector_db.ml.embeddings import HashEmbeddingModel, create_embedding_model
 
 
 def test_hash_embedding_model_is_default_and_configurable():
@@ -294,7 +294,6 @@ def test_invalid_embedding_backend_is_rejected():
     with pytest.raises(ValueError):
         create_embedding_model("unknown_embedding")
 
-from benchmarks.benchmark import compare_backends, run_benchmark, write_csv_report
 
 
 def test_phase4_benchmark_runs_small_dataset_in_memory():

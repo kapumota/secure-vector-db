@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
-from typing import Callable
 
 from secure_vector_db.database import SecureVectorDB
 from secure_vector_db.errors import SecureVectorDBError

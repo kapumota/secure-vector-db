@@ -1,7 +1,6 @@
 from __future__ import annotations
-from typing import List, Optional, Tuple, Iterator, TypeVar, Generic
+from typing import Any, Generic, Iterator, List, Optional, Tuple, TypeVar, cast
 from bisect import bisect_left, bisect_right
-from collections import deque
 import logging
 import math
 
@@ -11,6 +10,22 @@ logger.addHandler(logging.NullHandler())
 
 K = TypeVar('K')
 V = TypeVar('V')  # Tipo de valor en hojas
+
+
+def _bisect_left(keys: List[K], key: K) -> int:
+    """Aplica bisect_left sobre claves ordenables sin cambiar la API generica."""
+    return bisect_left(cast(List[Any], keys), cast(Any, key))
+
+
+def _bisect_right(keys: List[K], key: K) -> int:
+    """Aplica bisect_right sobre claves ordenables sin cambiar la API generica."""
+    return bisect_right(cast(List[Any], keys), cast(Any, key))
+
+
+def _greater_equal(left: K, right: K) -> bool:
+    """Compara claves ordenables sin imponer una cota publica al tipo generico."""
+    return cast(Any, left) >= cast(Any, right)
+
 
 class BPlusTreeNode(Generic[K, V]):
     """
@@ -46,14 +61,14 @@ class BPlusTreeNode(Generic[K, V]):
         :return: lista de valores o None si no existe.
         """
         if self.is_leaf:
-            idx = bisect_left(self.keys, key)
+            idx = _bisect_left(self.keys, key)
             if idx < len(self.keys) and self.keys[idx] == key:
                 logger.debug(f"Encontrada clave {key} en hoja con valores {self.values[idx]}")
                 return self.values[idx]
             logger.debug(f"Clave {key} no encontrada en hoja")
             return None
         # si es interno, descender al hijo adecuado
-        idx = bisect_right(self.keys, key)
+        idx = _bisect_right(self.keys, key)
         logger.debug(f"Descendiendo a child[{idx}] para buscar {key}")
         return self.children[idx].find(key)
 
@@ -63,7 +78,7 @@ class BPlusTreeNode(Generic[K, V]):
         Si la pareja ya existe, no la duplica.
         """
         if self.is_leaf:
-            idx = bisect_left(self.keys, key)
+            idx = _bisect_left(self.keys, key)
             if idx < len(self.keys) and self.keys[idx] == key:
                 if value not in self.values[idx]:
                     self.values[idx].append(value)
@@ -75,12 +90,12 @@ class BPlusTreeNode(Generic[K, V]):
                 self.values.insert(idx, [value])
                 logger.debug(f"Insertada clave {key} en hoja: {self.keys}")
         else:
-            idx = bisect_right(self.keys, key)
+            idx = _bisect_right(self.keys, key)
             child = self.children[idx]
             if len(child.keys) == self.order:
                 logger.debug(f"Hijo lleno en idx {idx}, realizando división")
                 self.split_child(idx)
-                if key >= self.keys[idx]:
+                if _greater_equal(key, self.keys[idx]):
                     idx += 1
             self.children[idx].insert_non_full(key, value)
 
@@ -127,7 +142,7 @@ class BPlusTreeNode(Generic[K, V]):
             else:
                 logger.debug(f"Clave {key} no encontrada en hoja para eliminar")
             return
-        idx = bisect_left(self.keys, key)
+        idx = _bisect_left(self.keys, key)
         if idx < len(self.keys) and self.keys[idx] == key:
             idx += 1
             logger.debug(f"Delegando eliminación de {key} a child[{idx}]")
@@ -267,4 +282,3 @@ class BPlusTree(Generic[K, V]):
             f"Hojas a profundidades distintas: {profundidades}"
         logger.debug("Validación correcta: estructura válida")
         return True
-

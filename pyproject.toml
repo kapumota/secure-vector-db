@@ -1,7 +1,7 @@
 [project]
 name = "secure-vector-db"
 version = "0.7.0"
-description = "Base de datos vectorial verificable con SQLite, B+ Tree, Merkle Tree, autenticación, API FastAPI, Docker, benchmarks y CI/CD."
+description = "Base de datos vectorial verificable con SQLite, B+ Tree, Merkle Tree, autenticación, API FastAPI, Docker, benchmarks y CI."
 requires-python = ">=3.10"
 dependencies = ["numpy", "fastapi", "uvicorn"]
 
@@ -13,3 +13,54 @@ secure-vector-db = "secure_vector_db.cli:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["secure_vector_db*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".secure_db",
+    ".venv",
+    "venv",
+    "env",
+    "vector",
+    "build",
+    "dist",
+    "secure_vector_db.egg-info",
+]
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"benchmarks/benchmark.py" = ["E402"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["secure_vector_db"]
+ignore_missing_imports = true
+allow_redefinition = true
+disallow_untyped_defs = false
+check_untyped_defs = false
+warn_unused_ignores = false
+exclude = '''(?x)(
+    ^\.secure_db/
+    | ^\.venv/
+    | ^venv/
+    | ^env/
+    | ^vector/
+    | ^build/
+    | ^dist/
+    | ^secure_vector_db\.egg-info/
+)'''
