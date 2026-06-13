@@ -128,3 +128,13 @@ La Fase 3.5 agrega explain plan, endpoint de explicabilidad, CLI de explicabilid
 Documento relacionado:
 
 docs/LEARNED_OBSERVABILITY.md
+
+#### Persistencia del modelo aprendido
+
+La Fase 4 agrega persistencia SQLite para segmentos y metadata del indice aprendido.
+
+Documento relacionado:
+
+```text
+docs/LEARNED_INDEX_PERSISTENCE.md
+```

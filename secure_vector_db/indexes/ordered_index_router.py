@@ -1,4 +1,4 @@
-"""Enrutador hibrido con explain plan para indice aprendido y B+ Tree."""
+"""Enrutador hibrido con explain plan y persistencia para indice aprendido."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from secure_vector_db.indexes.learned_piecewise_index import LearnedPiecewiseInd
 
 
 class OrderedIndexRouter:
-    """Combina prediccion aprendida, fallback exacto y observabilidad."""
+    """Combina prediccion aprendida, fallback exacto, observabilidad y persistencia."""
 
     def __init__(self, bplus_tree: BPlusTree[int, int]) -> None:
         """Inicializa el enrutador sobre el B+ Tree exacto."""
@@ -37,6 +37,45 @@ class OrderedIndexRouter:
         self._fallback_count = 0
         self._disabled_reason = "" if self._enabled else "indice aprendido sin claves"
         return self.stats()
+
+    def load_snapshot(
+        self,
+        keys: Sequence[int],
+        segments: Sequence[Dict[str, Any]],
+        max_error: int,
+        observed_max_error: int,
+        observed_avg_error: float,
+    ) -> Dict[str, Any]:
+        """Carga un modelo aprendido persistido sobre las claves actuales."""
+        ordered_keys = list(keys)
+        self._learned_index.load_state(
+            ordered_keys,
+            segments,
+            max_error,
+            observed_max_error,
+            observed_avg_error,
+        )
+        self._ordered_keys = ordered_keys
+        self._enabled = self._learned_index.is_trained
+        self._lookup_count = 0
+        self._fallback_count = 0
+        self._disabled_reason = "" if self._enabled else "modelo persistido sin claves"
+        return self.stats()
+
+    def snapshot(self) -> Dict[str, Any]:
+        """Exporta el modelo aprendido activo para persistencia."""
+        learned_stats = self._learned_index.stats()
+        return {
+            "metadata": {
+                "trained_keys": len(self._ordered_keys),
+                "max_error_configured": learned_stats["error_maximo_configurado"],
+                "max_error_observed": learned_stats["error_maximo_observado"],
+                "avg_error_observed": learned_stats["error_promedio_observado"],
+                "window_size": learned_stats["ventana_busqueda"],
+                "segments": learned_stats["segmentos"],
+            },
+            "segments": self._learned_index.export_segments(),
+        }
 
     def disable(self, reason: str) -> None:
         """Desactiva el camino aprendido cuando el indice queda obsoleto."""

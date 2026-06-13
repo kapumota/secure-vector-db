@@ -12,6 +12,7 @@ from secure_vector_db.indexes.ordered_index_router import OrderedIndexRouter
 from secure_vector_db.indexes.factory import create_vector_index
 from secure_vector_db.ml.embeddings import create_embedding_model
 from secure_vector_db.storage.record_store import Record, RecordStore
+from secure_vector_db.storage.learned_index_store import LearnedIndexStore
 from secure_vector_db.storage.sqlite_store import SQLiteRecordStore
 
 class SimpleMerkle:
@@ -69,13 +70,16 @@ class SecureVectorDB:
         self.vector_index = create_vector_index(embedding_dim, vector_index)
         self._lock = RLock()
         self._durable: SQLiteRecordStore | None = SQLiteRecordStore(storage_path) if storage_path else None
+        self._learned_index_name = "record_id"
+        self._learned_store = LearnedIndexStore(self._durable) if self._durable else None
         self.store = RecordStore()
         self._root_hash = ""
         if self._durable:
             self._load_from_durable()
         else:
             self._rebuild_indexes()
-        if learned_index_enabled:
+        self._try_load_persisted_learned_index()
+        if learned_index_enabled and not self.ordered_index.enabled:
             self.train_learned_index(learned_max_error)
 
     @classmethod
@@ -196,14 +200,20 @@ class SecureVectorDB:
         with self._lock:
             if max_error < 0:
                 raise ValidationError("max_error debe ser >= 0")
-            keys = [record.record_id for record in self.store.all()]
+            keys = self._ordered_record_ids()
             self.learned_max_error = max_error
-            return self.ordered_index.train(keys, max_error)
+            stats = self.ordered_index.train(keys, max_error)
+            self._persist_learned_index(keys)
+            return stats
 
     def ordered_index_stats(self) -> Dict[str, Any]:
         """Devuelve metricas del indice ordenado hibrido."""
         with self._lock:
-            return self.ordered_index.stats()
+            stats = self.ordered_index.stats()
+            stats["learned_persisted"] = bool(
+                self._learned_store and self._learned_store.has_index(self._learned_index_name)
+            )
+            return stats
 
     def explain_search_by_id(self, record_id: int) -> Dict[str, Any]:
         """Devuelve un explain plan para la busqueda por ID."""
@@ -212,10 +222,52 @@ class SecureVectorDB:
                 raise ValidationError("record_id debe ser un entero no negativo")
             return self.ordered_index.explain(record_id)
 
+    def _ordered_record_ids(self) -> list[int]:
+        # Devuelve IDs ordenados para entrenamiento y fingerprint.
+        return [record.record_id for record in self.store.all()]
+
+    def _try_load_persisted_learned_index(self) -> None:
+        # Carga el modelo persistido solo si coincide con la distribucion actual.
+        if not self._learned_store:
+            return
+        keys = self._ordered_record_ids()
+        if not keys:
+            return
+
+        snapshot = self._learned_store.load(self._learned_index_name)
+        if not snapshot:
+            return
+
+        metadata = snapshot["metadata"]
+        expected_fingerprint = self._learned_store.key_fingerprint(keys)
+        if metadata.get("key_fingerprint") != expected_fingerprint:
+            self._learned_store.delete(self._learned_index_name)
+            return
+
+        self.ordered_index.load_snapshot(
+            keys,
+            snapshot["segments"],
+            int(metadata["max_error_configured"]),
+            int(metadata["max_error_observed"]),
+            float(metadata["avg_error_observed"]),
+        )
+
+    def _persist_learned_index(self, keys: list[int]) -> None:
+        # Persiste el modelo aprendido si existe almacenamiento durable.
+        if not self._learned_store or not self.ordered_index.enabled:
+            return
+        self._learned_store.save(self._learned_index_name, keys, self.ordered_index.snapshot())
+
+    def _drop_persisted_learned_index(self) -> None:
+        # Elimina el modelo persistido cuando los datos cambian.
+        if self._learned_store:
+            self._learned_store.delete(self._learned_index_name)
+
     def _disable_learned_index(self, reason: str) -> None:
         # Desactiva el indice aprendido si los datos cambiaron.
         if self.ordered_index.enabled:
             self.ordered_index.disable(reason)
+        self._drop_persisted_learned_index()
 
     def get_or_raise(self, record_id: int) -> Record:
         rec = self.search_by_id(record_id)

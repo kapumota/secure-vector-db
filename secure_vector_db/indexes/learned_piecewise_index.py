@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from bisect import bisect_right
 from dataclasses import dataclass
-from typing import Dict, List, Sequence, Tuple, Union
+from typing import Any, Dict, List, Sequence, Tuple, Union
 
 
 StatValue = Union[bool, int, float]
@@ -26,6 +26,34 @@ class LearnedSegment:
     def predict(self, key: int) -> float:
         """Predice la posicion aproximada de una clave dentro del segmento."""
         return self.slope * key + self.intercept
+
+    def to_dict(self, segment_id: int) -> Dict[str, Any]:
+        """Convierte el segmento a un diccionario persistible."""
+        return {
+            "segment_id": segment_id,
+            "start_key": self.start_key,
+            "end_key": self.end_key,
+            "start_position": self.start_position,
+            "end_position": self.end_position,
+            "slope": self.slope,
+            "intercept": self.intercept,
+            "max_error": self.max_error,
+            "avg_error": self.avg_error,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "LearnedSegment":
+        """Reconstruye un segmento desde datos persistidos."""
+        return cls(
+            start_key=int(data["start_key"]),
+            end_key=int(data["end_key"]),
+            start_position=int(data["start_position"]),
+            end_position=int(data["end_position"]),
+            slope=float(data["slope"]),
+            intercept=float(data["intercept"]),
+            max_error=int(data["max_error"]),
+            avg_error=float(data["avg_error"]),
+        )
 
 
 class LearnedPiecewiseIndex:
@@ -86,6 +114,33 @@ class LearnedPiecewiseIndex:
             start = best_segment.end_position + 1
 
         self._recompute_observed_errors()
+
+    def load_state(
+        self,
+        keys: Sequence[int],
+        segments: Sequence[Dict[str, Any]],
+        max_error: int,
+        observed_max_error: int,
+        observed_avg_error: float,
+    ) -> None:
+        """Carga un modelo aprendido persistido sobre las claves actuales."""
+        if max_error < 0:
+            raise ValueError("max_error no puede ser negativo.")
+
+        ordered_keys = list(keys)
+        self._validate_keys(ordered_keys)
+        loaded_segments = [LearnedSegment.from_dict(segment) for segment in segments]
+
+        self._keys = ordered_keys
+        self._segments = loaded_segments
+        self._configured_max_error = max_error
+        self._observed_max_error = observed_max_error
+        self._observed_avg_error = observed_avg_error
+        self._trained = bool(ordered_keys and loaded_segments)
+
+    def export_segments(self) -> List[Dict[str, Any]]:
+        """Exporta segmentos entrenados para persistencia."""
+        return [segment.to_dict(segment_id) for segment_id, segment in enumerate(self._segments)]
 
     def predict_position(self, key: int) -> int:
         """Predice una posicion aproximada y siempre la limita al rango valido."""
