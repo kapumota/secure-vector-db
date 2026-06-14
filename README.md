@@ -949,3 +949,12 @@ docs/SECURITY_BASELINE.md
 docs/DEPLOYMENT_SECURITY.md
 scripts/security_audit.py
 ```
+#### Storage abstraction layer
+
+SecureVectorDB mantiene SQLite como backend persistente estable, pero define contratos de almacenamiento para preparar backends futuros sin reescribir la logica principal.
+
+```text
+docs/STORAGE.md
+secure_vector_db/storage/contracts.py
+secure_vector_db/storage/factory.py
+```
