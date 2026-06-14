@@ -164,3 +164,8 @@ La Fase 14.1 agrega evidencia de supply chain para el release.
 La Fase 14.1 agrega SBOM y vulnerability scan.
 
 El proyecto genera reportes en `reports/supply-chain/` y puede usar `pip-audit` cuando esta disponible.
+#### Coverage gate y Docker smoke test
+
+La Fase 14.2 agrega coverage gate y Docker smoke test para release hardening.
+
+Los targets base generan reportes sin romper entornos donde falten herramientas opcionales. Los targets estrictos se reservan para release candidate.

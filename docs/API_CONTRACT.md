@@ -172,3 +172,11 @@ La Fase 14.1 agrega evidencia de supply chain sin cambiar endpoints publicos.
 reports/supply-chain/sbom.json
 reports/supply-chain/vulnerability-report.json
 ```
+#### Coverage y Docker smoke test
+
+La Fase 14.2 agrega evidencia de cobertura y contenedor sin cambiar endpoints publicos.
+
+```text
+reports/coverage/coverage-summary.json
+reports/docker/docker-smoke.json
+```

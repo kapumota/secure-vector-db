@@ -179,6 +179,27 @@ def check_supply_chain_security(root: Path) -> ReleaseEvidenceCheck:
     )
 
 
+def check_coverage_and_docker_tools(root: Path) -> ReleaseEvidenceCheck:
+    """Valida configuracion de coverage gate y Docker smoke test."""
+    required = [
+        "docs/COVERAGE_AND_DOCKER_SMOKE.md",
+        "scripts/coverage_gate.py",
+        "scripts/docker_smoke_test.py",
+    ]
+    missing = [name for name in required if not (root / name).exists()]
+    if missing:
+        return ReleaseEvidenceCheck(
+            name="coverage-docker-smoke",
+            status="failed",
+            message="faltan archivos de coverage o Docker smoke: " + ", ".join(missing),
+        )
+    return ReleaseEvidenceCheck(
+        name="coverage-docker-smoke",
+        status="passed",
+        message="coverage gate y Docker smoke test configurados",
+    )
+
+
 def collect_report_files(root: Path) -> list[str]:
     """Recolecta reportes existentes sin exigir que todos existan."""
     candidates = [
@@ -204,6 +225,7 @@ def build_release_manifest(root: Path) -> ReleaseEvidenceManifest:
         check_no_plain_env_files(root),
         check_merkle_evidence_files(root),
         check_supply_chain_security(root),
+        check_coverage_and_docker_tools(root),
     ]
     return ReleaseEvidenceManifest(
         generated_at=datetime.now(timezone.utc).isoformat(),
