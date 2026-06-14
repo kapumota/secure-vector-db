@@ -61,8 +61,9 @@ def test_install_merkle_evidence_routes_registers_router(tmp_path) -> None:
     app = FastAPI()
     installed = install_merkle_evidence_routes(app, tmp_path / "merkle.sqlite", enabled=True)
     assert installed is True
-    route_paths = _collect_route_paths(app.routes)
-    assert "/merkle/root" in route_paths
+    client = TestClient(app)
+    response = client.get("/merkle/root")
+    assert response.status_code != 404
 
 
 def test_install_merkle_evidence_routes_can_be_disabled(tmp_path) -> None:

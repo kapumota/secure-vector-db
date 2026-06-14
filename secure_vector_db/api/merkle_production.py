@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 import os
 from pathlib import Path
 from typing import Any
@@ -12,6 +13,23 @@ from secure_vector_db.api.merkle_evidence import create_protected_merkle_evidenc
 from secure_vector_db.crypto.merkle_audit import JsonlMerkleAuditLog
 from secure_vector_db.crypto.merkle_persistence import SQLiteMerkleNodeStore
 
+
+def _collect_route_paths(routes: Iterable[Any]) -> set[str]:
+    # Recolecta rutas directas y anidadas de FastAPI.
+    paths: set[str] = set()
+    for route in routes:
+        route_path = getattr(route, "path", "")
+        if route_path:
+            paths.add(route_path)
+        nested_routes = getattr(route, "routes", None)
+        if nested_routes is not None:
+            paths.update(_collect_route_paths(nested_routes))
+    return paths
+
+
+def _has_merkle_root_route(app: FastAPI) -> bool:
+    # Verifica si la ruta raiz Merkle quedo registrada.
+    return "/merkle/root" in _collect_route_paths(app.routes)
 
 def should_enable_merkle_api(env: dict[str, str] | None = None) -> bool:
     """Indica si la API Merkle debe habilitarse."""
@@ -31,7 +49,11 @@ def install_merkle_evidence_routes(
         return False
     store = SQLiteMerkleNodeStore(database_path)
     audit_log = JsonlMerkleAuditLog(audit_log_path) if audit_log_path is not None else None
-    app.include_router(create_protected_merkle_evidence_router(store=store, audit_log=audit_log))
+    router = create_protected_merkle_evidence_router(store=store, audit_log=audit_log)
+    app.include_router(router)
+    if not _has_merkle_root_route(app):
+        for route in router.routes:
+            app.router.routes.append(route)
     return True
 
 
