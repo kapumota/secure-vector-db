@@ -168,3 +168,13 @@ Documento relacionado:
 ```text
 docs/EXPLAIN_PLAN.md
 ```
+
+#### Persistencia y recuperacion
+
+La Fase 7 agrega diagnostico y pruebas de recuperacion para validar que SQLite, Merkle, B+ Tree, indice vectorial y learned index se comporten correctamente despues de cerrar y reabrir la base.
+
+Documento relacionado:
+
+```text
+docs/PERSISTENCE_RECOVERY.md
+```
