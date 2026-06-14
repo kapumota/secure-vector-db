@@ -958,3 +958,12 @@ docs/STORAGE.md
 secure_vector_db/storage/contracts.py
 secure_vector_db/storage/factory.py
 ```
+#### Redis rate limiting opcional
+
+SecureVectorDB mantiene rate limiting en memoria por defecto y agrega backend Redis opcional para despliegues con multiples procesos o replicas.
+
+```text
+docs/RATE_LIMITING.md
+requirements-redis.txt
+docker-compose.redis.yml
+```
