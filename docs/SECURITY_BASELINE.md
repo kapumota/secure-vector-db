@@ -98,3 +98,16 @@ baseline_release
 ```
 
 El estado `baseline_release` significa que existe una base razonable para release experimental, no una garantia de seguridad enterprise.
+#### Storage abstraction layer
+
+La Fase 10 agrega `storage abstraction layer` para separar el contrato de almacenamiento de la implementacion SQLite actual.
+
+Esto prepara una ruta posterior hacia:
+
+```text
+PostgresRecordStore experimental
+PgVectorStore experimental
+RedisRateLimiter
+```
+
+SQLite sigue siendo el backend persistente principal en el release actual.

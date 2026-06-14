@@ -68,3 +68,8 @@ GET /explain/records/{record_id}
 Este contrato no promete replicacion, consenso, multi tenant enterprise ni compatibilidad distribuida.
 
 SecureVectorDB se mantiene como base vectorial verificable y experimental, con contrato estable para su API publica local.
+#### Relacion con storage
+
+El contrato publico de API no expone todavia seleccion de backend persistente.
+
+La Fase 10 prepara internamente `PersistentRecordStore`, pero SQLite sigue siendo el backend estable del release actual.
