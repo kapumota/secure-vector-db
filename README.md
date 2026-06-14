@@ -938,3 +938,14 @@ docs/API_CONTRACT.md
 docs/CLI_CONTRACT.md
 docs/ERRORS.md
 ```
+
+
+#### Seguridad de release
+
+SecureVectorDB incluye una baseline de seguridad para release experimental: contenedor no root, auditoria local, contrato de API con `X-API-Key` y documentacion explicita de limites.
+
+```text
+docs/SECURITY_BASELINE.md
+docs/DEPLOYMENT_SECURITY.md
+scripts/security_audit.py
+```

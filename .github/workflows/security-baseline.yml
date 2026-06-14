@@ -1,0 +1,23 @@
+name: security-baseline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security-baseline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Ejecutar auditoria local
+        run: python scripts/security_audit.py
