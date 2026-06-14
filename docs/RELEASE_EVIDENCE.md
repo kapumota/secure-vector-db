@@ -100,3 +100,17 @@ Los modos estrictos son:
 make coverage-strict
 make docker-smoke-strict
 ```
+#### Fase 15.0 - Integracion Merkle con flujos reales de escritura
+
+El evidence pack valida que exista la integracion Merkle con escrituras reales.
+
+```text
+docs/MERKLE_WRITE_INTEGRATION.md
+secure_vector_db/crypto/merkle_write_integration.py
+```
+
+La integracion se activa con:
+
+```text
+SECURE_VECTOR_DB_ENABLE_MERKLE_WRITE_INTEGRATION=true
+```

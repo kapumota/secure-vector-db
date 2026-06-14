@@ -1055,3 +1055,11 @@ scripts/docker_smoke_test.py
 make coverage-check
 make docker-smoke-test
 ```
+#### Integracion Merkle con escrituras reales
+
+SecureVectorDB puede conectar operaciones reales de escritura con Merkle persistente.
+
+```text
+docs/MERKLE_WRITE_INTEGRATION.md
+SECURE_VECTOR_DB_ENABLE_MERKLE_WRITE_INTEGRATION=true
+```

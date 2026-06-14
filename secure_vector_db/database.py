@@ -7,6 +7,10 @@ from threading import RLock
 from typing import Any, Dict, List, Optional, Tuple
 
 from secure_vector_db.errors import IntegrityError, RecordNotFoundError, ValidationError
+from secure_vector_db.crypto.merkle_write_integration import (
+    MerkleWriteIntegrator,
+    build_merkle_write_integrator_from_env,
+)
 from secure_vector_db.indexes.bplus_tree import BPlusTree
 from secure_vector_db.indexes.ordered_index_router import OrderedIndexRouter
 from secure_vector_db.indexes.learned_index_health import evaluate_learned_index_health
@@ -76,6 +80,7 @@ class SecureVectorDB:
         self._learned_store = LearnedIndexStore(self._durable) if self._durable else None
         self.store = RecordStore()
         self._root_hash = ""
+        self._merkle_write_integrity: MerkleWriteIntegrator | None = build_merkle_write_integrator_from_env(storage_path)
         if self._durable:
             self._load_from_durable()
         else:
@@ -112,6 +117,7 @@ class SecureVectorDB:
         for record in self._durable.all():
             self.store.insert(record)
         self._rebuild_indexes()
+        self._sync_merkle_write_integrity("load")
         saved_root = self._durable.get_meta("root_hash", "")
         computed = self.compute_root_hash()
         self._root_hash = saved_root if saved_root or len(self.store) else computed
@@ -173,6 +179,7 @@ class SecureVectorDB:
             self._index_record(record)
             self._disable_learned_index("datos modificados despues del entrenamiento")
             self._sync_root()
+            self._apply_merkle_write_insert(record)
             return record
 
     def delete(self, record_id: int) -> bool:
@@ -186,7 +193,26 @@ class SecureVectorDB:
                 self._remove_from_indexes(record_id)
                 self._disable_learned_index("datos modificados despues del entrenamiento")
                 self._sync_root()
+                self._apply_merkle_write_delete(record_id)
             return deleted
+
+    def _sync_merkle_write_integrity(self, operation: str = "rebuild") -> None:
+        """Sincroniza Merkle persistente desde el store real."""
+        if self._merkle_write_integrity is not None:
+            self._merkle_write_integrity.rebuild_from_records(
+                self.store.all(),
+                operation=operation,
+            )
+
+    def _apply_merkle_write_insert(self, record: Record) -> None:
+        """Aplica insert real al Merkle persistente si esta activo."""
+        if self._merkle_write_integrity is not None:
+            self._merkle_write_integrity.apply_insert(record)
+
+    def _apply_merkle_write_delete(self, record_id: int) -> None:
+        """Aplica delete real al Merkle persistente si esta activo."""
+        if self._merkle_write_integrity is not None:
+            self._merkle_write_integrity.apply_delete(record_id)
 
     def search_by_id(self, record_id: int) -> Optional[Record]:
         with self._lock:
@@ -409,6 +435,19 @@ class SecureVectorDB:
     def assert_integrity(self) -> None:
         if not self.verify_dataset():
             raise IntegrityError("La raíz Merkle guardada no coincide con los datos actuales")
+
+    @property
+    def merkle_integrity_root_hash(self) -> str:
+        """Devuelve raiz Merkle persistente de escrituras reales."""
+        if self._merkle_write_integrity is None:
+            return ""
+        return self._merkle_write_integrity.root_hex
+
+    def verify_merkle_integrity(self) -> bool:
+        """Verifica Merkle persistente de escrituras reales."""
+        if self._merkle_write_integrity is None:
+            return True
+        return self._merkle_write_integrity.verify_integrity()
 
     def tamper_text_for_demo(self, record_id: int, new_text: str) -> None:
         rec = self.get_or_raise(record_id)
