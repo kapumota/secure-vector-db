@@ -13,6 +13,13 @@ from secure_vector_db.crypto.merkle_persistence import (
     SQLiteMerkleNodeStore as SQLiteMerkleNodeStore,
 )
 
+from secure_vector_db.crypto.merkle_evidence import (
+    MerkleEvidenceReport as MerkleEvidenceReport,
+    build_merkle_evidence_report as build_merkle_evidence_report,
+    export_merkle_evidence_json as export_merkle_evidence_json,
+    verify_merkle_evidence as verify_merkle_evidence,
+)
+
 __all__ = [
     "IncrementalMerkleTree",
     "MerkleNodeDigest",
@@ -23,4 +30,8 @@ __all__ = [
     "MerklePersistenceStats",
     "MerkleRecoveryError",
     "SQLiteMerkleNodeStore",
+    "MerkleEvidenceReport",
+    "build_merkle_evidence_report",
+    "export_merkle_evidence_json",
+    "verify_merkle_evidence",
 ]

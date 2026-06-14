@@ -1007,3 +1007,12 @@ SecureVectorDB agrega persistencia interna para Merkle incremental sobre SQLite.
 docs/MERKLE_PERSISTENCE.md
 secure_vector_db/crypto/merkle_persistence.py
 ```
+#### API y evidencia Merkle verificable
+
+SecureVectorDB agrega evidencia Merkle verificable con reporte JSON y router FastAPI opcional.
+
+```text
+docs/MERKLE_EVIDENCE.md
+secure_vector_db/crypto/merkle_evidence.py
+secure_vector_db/api/merkle_evidence.py
+```
