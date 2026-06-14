@@ -911,3 +911,12 @@ make clean-all
 ```
 
 `make clean` elimina caches y artefactos de build. `make clean-reports` se deja separado para no borrar evidencia local por accidente.
+
+#### Explain plan
+
+SecureVectorDB expone explain plan para inspeccionar que indice se usa en busquedas por ID y por rango.
+
+```bash
+python -m secure_vector_db.cli --db demo.sqlite explain-get 42
+python -m secure_vector_db.cli --db demo.sqlite explain-range 10 20
+```

@@ -165,7 +165,7 @@ def cmd_index_stats(args: argparse.Namespace) -> None:
 
 def cmd_explain_id(args: argparse.Namespace) -> None:
     db = open_db_from_args(args)
-    print(json.dumps(db.explain_search_by_id(args.record_id), ensure_ascii=False, indent=2, sort_keys=True))
+    print(json.dumps(db.explain_record(args.record_id), ensure_ascii=False, indent=2, sort_keys=True))
     db.close()
 
 
@@ -179,6 +179,19 @@ def cmd_index_health(args: argparse.Namespace) -> None:
 def cmd_retrain_learned_index(args: argparse.Namespace) -> None:
     db = open_db_from_args(args)
     print(json.dumps(db.retrain_learned_index(args.max_error), ensure_ascii=False, indent=2, sort_keys=True))
+    db.close()
+
+
+
+def cmd_explain_get(args: argparse.Namespace) -> None:
+    db = open_db_from_args(args)
+    print(json.dumps(db.explain_record(args.record_id), ensure_ascii=False, indent=2, sort_keys=True))
+    db.close()
+
+
+def cmd_explain_range(args: argparse.Namespace) -> None:
+    db = open_db_from_args(args)
+    print(json.dumps(db.explain_range(args.start, args.end), ensure_ascii=False, indent=2, sort_keys=True))
     db.close()
 
 
@@ -235,6 +248,15 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("explain-id", help="explica la busqueda por ID")
     p.add_argument("record_id", type=int)
     p.set_defaults(func=cmd_explain_id)
+
+    p = sub.add_parser("explain-get", help="explica la busqueda estable por ID")
+    p.add_argument("record_id", type=int)
+    p.set_defaults(func=cmd_explain_get)
+
+    p = sub.add_parser("explain-range", help="explica la busqueda estable por rango de IDs")
+    p.add_argument("start", type=int)
+    p.add_argument("end", type=int)
+    p.set_defaults(func=cmd_explain_range)
 
     p = sub.add_parser("index-health", help="muestra salud del indice aprendido")
     p.add_argument("--fallback-threshold", type=float, default=0.20)

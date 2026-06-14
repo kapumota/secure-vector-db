@@ -10,6 +10,7 @@ from secure_vector_db.errors import IntegrityError, RecordNotFoundError, Validat
 from secure_vector_db.indexes.bplus_tree import BPlusTree
 from secure_vector_db.indexes.ordered_index_router import OrderedIndexRouter
 from secure_vector_db.indexes.learned_index_health import evaluate_learned_index_health
+from secure_vector_db.indexes.explain_plan import build_range_explain_plan, build_record_explain_plan
 from secure_vector_db.indexes.factory import create_vector_index
 from secure_vector_db.ml.embeddings import create_embedding_model
 from secure_vector_db.storage.record_store import Record, RecordStore
@@ -263,6 +264,26 @@ class SecureVectorDB:
         # Elimina el modelo persistido cuando los datos cambian.
         if self._learned_store:
             self._learned_store.delete(self._learned_index_name)
+
+    def explain_record(self, record_id: int) -> Dict[str, Any]:
+        """Devuelve explain plan estable para una busqueda por ID."""
+        with self._lock:
+            raw_plan = self.explain_search_by_id(record_id)
+            health = self.learned_index_health()
+            return build_record_explain_plan(raw_plan, health)
+
+    def explain_range(self, start_id: int, end_id: int) -> Dict[str, Any]:
+        """Devuelve explain plan estable para una busqueda por rango."""
+        with self._lock:
+            if not isinstance(start_id, int) or not isinstance(end_id, int):
+                raise ValidationError("start_id y end_id deben ser enteros")
+            if start_id < 0 or end_id < 0:
+                raise ValidationError("start_id y end_id deben ser no negativos")
+            if start_id > end_id:
+                raise ValidationError("start_id no puede ser mayor que end_id")
+            records = self.search_by_range(start_id, end_id)
+            health = self.learned_index_health()
+            return build_range_explain_plan(start_id, end_id, len(records), health)
 
     def learned_index_health(self, fallback_threshold: float = 0.20) -> Dict[str, Any]:
         """Devuelve salud y recomendacion operativa del indice aprendido."""

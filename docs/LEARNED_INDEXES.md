@@ -158,3 +158,13 @@ Documento relacionado:
 ```text
 docs/LEARNED_INDEX_HEALTH.md
 ```
+
+#### Explain plan unificado
+
+La Fase 6 agrega un contrato estable para explicar busquedas por ID y por rango.
+
+Documento relacionado:
+
+```text
+docs/EXPLAIN_PLAN.md
+```
