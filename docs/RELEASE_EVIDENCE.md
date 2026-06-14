@@ -76,3 +76,27 @@ reports/supply-chain/vulnerability-report.json
 ```
 
 El target `make supply-chain-check` genera ambos reportes. El modo estricto se ejecuta con `make supply-chain-strict`.
+#### Fase 14.2 - Coverage gate y Docker smoke test
+
+Esta seccion documenta el coverage gate y el Docker smoke test como evidencias de release.
+
+El release-check integra gates base de cobertura y contenedor:
+
+```text
+make coverage-check
+make docker-smoke-test
+```
+
+Los reportes esperados son:
+
+```text
+reports/coverage/coverage-summary.json
+reports/docker/docker-smoke.json
+```
+
+Los modos estrictos son:
+
+```text
+make coverage-strict
+make docker-smoke-strict
+```

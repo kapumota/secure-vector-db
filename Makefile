@@ -28,3 +28,18 @@ supply-chain-check:
 .PHONY: supply-chain-strict
 supply-chain-strict:
 	python scripts/supply_chain_security.py --check --require-audit-tool --fail-on-vulnerabilities
+.PHONY: coverage-check
+coverage-check:
+	python scripts/coverage_gate.py --threshold 80
+
+.PHONY: coverage-strict
+coverage-strict:
+	python scripts/coverage_gate.py --threshold 80 --strict
+
+.PHONY: docker-smoke-test
+docker-smoke-test:
+	python scripts/docker_smoke_test.py
+
+.PHONY: docker-smoke-strict
+docker-smoke-strict:
+	python scripts/docker_smoke_test.py --strict

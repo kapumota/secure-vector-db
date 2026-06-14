@@ -1044,3 +1044,14 @@ docs/SUPPLY_CHAIN_SECURITY.md
 scripts/supply_chain_security.py
 make supply-chain-check
 ```
+#### Coverage gate y Docker smoke test
+
+SecureVectorDB agrega gates de cobertura y smoke test de contenedor para release.
+
+```text
+docs/COVERAGE_AND_DOCKER_SMOKE.md
+scripts/coverage_gate.py
+scripts/docker_smoke_test.py
+make coverage-check
+make docker-smoke-test
+```
