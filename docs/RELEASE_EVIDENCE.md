@@ -114,3 +114,18 @@ La integracion se activa con:
 ```text
 SECURE_VECTOR_DB_ENABLE_MERKLE_WRITE_INTEGRATION=true
 ```
+#### Fase 16.0 - API contract freeze y versionado
+
+El evidence pack integra validacion de versionado:
+
+```text
+make version-check
+reports/release/version-check.json
+docs/VERSIONING.md
+```
+
+El modo estricto para release candidate es:
+
+```text
+make version-strict
+```

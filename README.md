@@ -1063,3 +1063,13 @@ SecureVectorDB puede conectar operaciones reales de escritura con Merkle persist
 docs/MERKLE_WRITE_INTEGRATION.md
 SECURE_VECTOR_DB_ENABLE_MERKLE_WRITE_INTEGRATION=true
 ```
+#### API contract freeze y versionado
+
+SecureVectorDB valida versionado y contrato publico antes del release candidate.
+
+```text
+docs/VERSIONING.md
+scripts/version_check.py
+make version-check
+make version-strict
+```

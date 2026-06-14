@@ -229,6 +229,36 @@ def check_merkle_write_integration(root: Path) -> ReleaseEvidenceCheck:
     )
 
 
+def check_versioning_contract(root: Path) -> ReleaseEvidenceCheck:
+    """Valida archivos base de versionado y contrato congelado."""
+    required = [
+        "docs/VERSIONING.md",
+        "scripts/version_check.py",
+        "CHANGELOG.md",
+    ]
+    missing = [name for name in required if not (root / name).exists()]
+    if missing:
+        return ReleaseEvidenceCheck(
+            name="versioning-contract",
+            status="failed",
+            message="faltan archivos de versionado: " + ", ".join(missing),
+        )
+
+    contract_text = (root / "docs" / "API_CONTRACT.md").read_text(encoding="utf-8")
+    if "Fase 16.0" not in contract_text:
+        return ReleaseEvidenceCheck(
+            name="versioning-contract",
+            status="failed",
+            message="API_CONTRACT.md no contiene Fase 16.0",
+        )
+
+    return ReleaseEvidenceCheck(
+        name="versioning-contract",
+        status="passed",
+        message="versionado y contrato congelado presentes",
+    )
+
+
 def collect_report_files(root: Path) -> list[str]:
     """Recolecta reportes existentes sin exigir que todos existan."""
     candidates = [
@@ -256,6 +286,7 @@ def build_release_manifest(root: Path) -> ReleaseEvidenceManifest:
         check_supply_chain_security(root),
         check_coverage_and_docker_tools(root),
         check_merkle_write_integration(root),
+        check_versioning_contract(root),
     ]
     return ReleaseEvidenceManifest(
         generated_at=datetime.now(timezone.utc).isoformat(),

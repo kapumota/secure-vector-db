@@ -11,3 +11,10 @@
 - Los cambios compatibles aumentan la versión menor.
 - Las correcciones internas aumentan la versión de parche.
 - Los cambios incompatibles deben documentarse antes de fusionarse a `main`.
+#### Fase 16.0 - API contract freeze y versionado
+
+- Agrega `docs/VERSIONING.md`.
+- Agrega `scripts/version_check.py`.
+- Agrega `make version-check`.
+- Agrega `make version-strict`.
+- Documenta superficie estable y experimental.
