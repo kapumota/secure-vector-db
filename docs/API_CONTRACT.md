@@ -125,3 +125,15 @@ docs/MERKLE_PERSISTENCE.md
 ```
 
 Esta fase no cambia endpoints ni respuestas publicas. La exposicion de pruebas Merkle por API queda para una fase posterior.
+#### API Merkle opcional
+
+La Fase 13.2 agrega router opcional para evidencia Merkle verificable.
+
+```text
+docs/MERKLE_EVIDENCE.md
+GET /merkle/root
+GET /merkle/verify
+GET /merkle/evidence
+```
+
+El router no se conecta automaticamente al servidor principal. La integracion productiva debe ser explicita.

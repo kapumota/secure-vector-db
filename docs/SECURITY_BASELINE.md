@@ -142,3 +142,8 @@ La Fase 13.0 incorpora Merkle incremental como nucleo interno de integridad.
 La Fase 13.1 agrega Persistencia y recovery de Merkle incremental.
 
 La raiz persistida se valida contra hojas persistidas para detectar corrupcion basica antes de reconstruir nodos internos.
+#### Evidencia Merkle verificable
+
+La Fase 13.2 agrega evidencia Merkle verificable.
+
+El reporte no expone datos sensibles. Solo publica raiz, estado, conteos y modo de recovery.

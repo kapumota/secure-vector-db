@@ -51,3 +51,10 @@ Fase 13.2 - API y evidencia Merkle verificable
 Riesgo bajo-medio.
 
 La persistencia se agrega como modulo interno sobre SQLite, sin modificar todavia el contrato publico de API.
+#### Fase 13.2 - API y evidencia
+
+La evidencia verificable se documenta en:
+
+```text
+docs/MERKLE_EVIDENCE.md
+```
