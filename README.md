@@ -983,3 +983,11 @@ SecureVectorDB agrega scopes basicos sobre `AuthProvider` para preparar autoriza
 docs/AUTH_SCOPES.md
 secure_vector_db/api/auth_scopes.py
 ```
+#### JWT experimental
+
+SecureVectorDB mantiene `X-API-Key` como backend estable y agrega `JwtAuthProvider` como backend experimental opcional.
+
+```text
+docs/AUTH_JWT_EXPERIMENTAL.md
+secure_vector_db/api/auth_jwt.py
+```

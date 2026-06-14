@@ -97,3 +97,15 @@ Para despliegues mas restrictivos se puede limitar a lectura:
 ```bash
 SECURE_VECTOR_DB_AUTH_SCOPES=read
 ```
+#### JWT experimental
+
+Para activar JWT experimental:
+
+```bash
+SECURE_VECTOR_DB_AUTH_BACKEND=jwt
+SECURE_VECTOR_DB_JWT_SECRET=clave-local
+SECURE_VECTOR_DB_JWT_ISSUER=secure-vector-db
+SECURE_VECTOR_DB_JWT_AUDIENCE=api
+```
+
+Este modo no reemplaza OAuth2 completo ni rotacion automatica de llaves.
