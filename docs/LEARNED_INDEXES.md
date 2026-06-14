@@ -178,3 +178,13 @@ Documento relacionado:
 ```text
 docs/PERSISTENCE_RECOVERY.md
 ```
+
+#### Contratos publicos
+
+Los endpoints y comandos relacionados al learned index deben respetar los contratos publicos de API y CLI.
+
+```text
+docs/API_CONTRACT.md
+docs/CLI_CONTRACT.md
+docs/ERRORS.md
+```

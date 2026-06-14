@@ -928,3 +928,13 @@ SecureVectorDB expone diagnostico de recuperacion para validar raiz Merkle, regi
 ```bash
 python -m secure_vector_db.cli --db demo.sqlite persistence-health
 ```
+
+#### Contratos publicos
+
+La API, CLI y politica de errores tienen contratos documentados para preparar releases sin mezclar partes estables y experimentales.
+
+```text
+docs/API_CONTRACT.md
+docs/CLI_CONTRACT.md
+docs/ERRORS.md
+```
