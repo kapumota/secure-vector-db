@@ -78,3 +78,21 @@ La Fase 10 prepara internamente `PersistentRecordStore`, pero SQLite sigue siend
 El contrato publico mantiene `X-API-Key` como mecanismo estable.
 
 Internamente, la Fase 12.0 agrega `AuthProvider` y `ApiKeyAuthProvider` para preparar backends futuros sin cambiar endpoints ni respuestas publicas.
+#### Politica de scopes
+
+SecureVectorDB prepara scopes basicos para autorizacion gradual:
+
+```text
+read
+write
+admin
+```
+
+La politica de errores esperada es:
+
+```text
+401 -> autenticacion faltante o invalida
+403 -> autenticacion valida pero scope insuficiente
+```
+
+El contrato publico mantiene `X-API-Key` como mecanismo estable mientras los endpoints migran gradualmente a dependencias con scope.

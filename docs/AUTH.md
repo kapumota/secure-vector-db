@@ -76,3 +76,12 @@ Esta fase no implementa:
 Fase 12.1 - Auth middleware y scopes basicos
 Fase 12.2 - JWT experimental
 ```
+#### Fase 12.1 - Auth middleware y scopes basicos
+
+La fase 12.1 agrega scopes `read`, `write` y `admin` sobre `AuthProvider`.
+
+La documentacion completa esta en:
+
+```text
+docs/AUTH_SCOPES.md
+```

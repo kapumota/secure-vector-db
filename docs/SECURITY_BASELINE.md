@@ -129,3 +129,7 @@ AuthMiddleware con scopes basicos
 JwtAuthProvider experimental
 OAuth2 fuera del alcance inmediato
 ```
+
+#### Auth middleware compatible
+
+La capa de Auth middleware permite aplicar scopes basicos de forma gradual sin romper `X-API-Key`.
