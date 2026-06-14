@@ -193,3 +193,7 @@ def explain_record(record_id: int, db: SecureVectorDB = Depends(get_db)):
 @app.get("/explain/range", tags=["explain"], dependencies=[Depends(require_api_key)], responses={400: {"model": ErrorResponse}, 401: {"model": ErrorResponse}})
 def explain_range(start: int = Query(...), end: int = Query(...), db: SecureVectorDB = Depends(get_db)):
     return db.explain_range(start, end)
+
+@app.get("/persistence/health", tags=["persistence"], dependencies=[Depends(require_api_key)], responses={401: {"model": ErrorResponse}})
+def persistence_health(db: SecureVectorDB = Depends(get_db)):
+    return db.persistence_health()

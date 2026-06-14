@@ -920,3 +920,11 @@ SecureVectorDB expone explain plan para inspeccionar que indice se usa en busque
 python -m secure_vector_db.cli --db demo.sqlite explain-get 42
 python -m secure_vector_db.cli --db demo.sqlite explain-range 10 20
 ```
+
+#### Persistencia y recuperacion
+
+SecureVectorDB expone diagnostico de recuperacion para validar raiz Merkle, registros persistidos e indices auxiliares reconstruibles.
+
+```bash
+python -m secure_vector_db.cli --db demo.sqlite persistence-health
+```

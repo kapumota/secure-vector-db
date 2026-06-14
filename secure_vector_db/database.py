@@ -265,6 +265,58 @@ class SecureVectorDB:
         if self._learned_store:
             self._learned_store.delete(self._learned_index_name)
 
+    def persistence_health(self) -> Dict[str, Any]:
+        """Devuelve diagnostico de persistencia y recuperacion."""
+        with self._lock:
+            durable_enabled = self._durable is not None
+            computed_root = self.compute_root_hash()
+            persisted_root = ""
+
+            if self._durable:
+                persisted_root = self._durable.get_meta("root_hash", "")
+
+            root_matches = True
+            if durable_enabled:
+                root_matches = persisted_root == computed_root
+
+            if not durable_enabled:
+                status = "memory_only"
+                reason = "la base no usa almacenamiento SQLite persistente"
+            elif root_matches:
+                status = "healthy"
+                reason = "la raiz persistida coincide con la raiz calculada"
+            else:
+                status = "needs_recovery"
+                reason = "la raiz persistida no coincide con la raiz calculada"
+
+            learned_health: Dict[str, Any]
+            try:
+                learned_health = self.learned_index_health()
+            except Exception as exc:
+                learned_health = {
+                    "status": "unknown",
+                    "reason": f"no se pudo evaluar el indice aprendido: {exc}",
+                }
+
+            return {
+                "status": status,
+                "reason": reason,
+                "durable_enabled": durable_enabled,
+                "record_count": len(self.store),
+                "root_hash": self._root_hash,
+                "computed_root_hash": computed_root,
+                "persisted_root_hash": persisted_root,
+                "root_matches": root_matches,
+                "recoverable_indexes": [
+                    "bplus_tree",
+                    "vector_index",
+                    "ordered_index_router",
+                    "learned_index",
+                ],
+                "source_of_truth": "sqlite_records" if durable_enabled else "memory_store",
+                "learned_index": learned_health,
+            }
+
     def explain_record(self, record_id: int) -> Dict[str, Any]:
         """Devuelve explain plan estable para una busqueda por ID."""
         with self._lock:
