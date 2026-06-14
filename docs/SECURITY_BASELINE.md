@@ -111,3 +111,8 @@ RedisRateLimiter
 ```
 
 SQLite sigue siendo el backend persistente principal en el release actual.
+
+
+#### Redis rate limiting distribuido
+
+El backend `RedisRateLimiter` habilita rate limiting distribuido para despliegues con multiples workers o replicas.

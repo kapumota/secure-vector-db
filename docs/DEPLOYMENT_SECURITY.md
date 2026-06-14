@@ -58,3 +58,13 @@ python -m pytest -q
 #### Alcance
 
 Estas recomendaciones no sustituyen una revision de seguridad externa. Sirven como baseline de release para un proyecto experimental serio.
+#### Redis rate limiting opcional
+
+Para multiples workers o replicas, configurar Redis:
+
+```bash
+SECURE_VECTOR_DB_RATE_LIMIT_BACKEND=redis
+SECURE_VECTOR_DB_RATE_LIMIT_REDIS_URL=redis://localhost:6379/0
+```
+
+El archivo `docker-compose.redis.yml` levanta un Redis local para pruebas de integracion.
