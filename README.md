@@ -1026,3 +1026,12 @@ secure_vector_db/api/merkle_production.py
 secure_vector_db/cli/merkle_evidence.py
 scripts/merkle_evidence.py
 ```
+#### Evidence Pack y release hardening
+
+SecureVectorDB agrega un evidence pack reproducible para preparar release.
+
+```text
+docs/RELEASE_EVIDENCE.md
+scripts/release_evidence.py
+make release-check
+```

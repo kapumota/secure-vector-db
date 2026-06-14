@@ -152,3 +152,8 @@ El reporte no expone datos sensibles. Solo publica raiz, estado, conteos y modo 
 La Fase 13.3 agrega auditoria Merkle para eventos de root, verify y evidence.
 
 El log JSONL no expone datos sensibles y queda pensado para evidence pack de release.
+#### Evidence Pack de release
+
+La Fase 14.0 agrega Evidence Pack y release hardening.
+
+El release genera manifest de evidencia, valida documentacion minima, evita artefactos temporales criticos y confirma la linea Merkle de integridad verificable.

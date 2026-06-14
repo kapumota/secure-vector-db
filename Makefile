@@ -14,3 +14,10 @@ clean-reports:
 
 clean-all:
 	python scripts/clean_project.py --cache --build --reports
+.PHONY: release-check
+release-check:
+	python scripts/security_audit.py
+	ruff check .
+	mypy secure_vector_db
+	python -m pytest -q
+	python scripts/release_evidence.py --check
