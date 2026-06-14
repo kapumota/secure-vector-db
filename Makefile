@@ -21,3 +21,10 @@ release-check:
 	mypy secure_vector_db
 	python -m pytest -q
 	python scripts/release_evidence.py --check
+.PHONY: supply-chain-check
+supply-chain-check:
+	python scripts/supply_chain_security.py --check
+
+.PHONY: supply-chain-strict
+supply-chain-strict:
+	python scripts/supply_chain_security.py --check --require-audit-tool --fail-on-vulnerabilities

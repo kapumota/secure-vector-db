@@ -66,3 +66,13 @@ Todo debe pasar antes de abrir un release candidate.
 Fase 14.1 - SBOM y vulnerability scan
 Fase 14.2 - Coverage gate y Docker smoke test
 ```
+#### Fase 14.1 - SBOM y vulnerability scan
+
+El evidence pack integra reportes de supply chain:
+
+```text
+reports/supply-chain/sbom.json
+reports/supply-chain/vulnerability-report.json
+```
+
+El target `make supply-chain-check` genera ambos reportes. El modo estricto se ejecuta con `make supply-chain-strict`.

@@ -164,3 +164,11 @@ make release-check
 reports/release/release-manifest.json
 docs/RELEASE_EVIDENCE.md
 ```
+#### Supply chain evidence
+
+La Fase 14.1 agrega evidencia de supply chain sin cambiar endpoints publicos.
+
+```text
+reports/supply-chain/sbom.json
+reports/supply-chain/vulnerability-report.json
+```
