@@ -1,0 +1,2 @@
+# Dependencia opcional sugerida para validaciones JWT externas en fases posteriores.
+PyJWT>=2.8,<3.0

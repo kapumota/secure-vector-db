@@ -140,6 +140,11 @@ def build_auth_provider_from_env(env: Mapping[str, str] | None = None) -> AuthPr
             raise RuntimeError("SECURE_VECTOR_DB_API_KEY debe definirse para AuthProvider api_key")
         return ApiKeyAuthProvider(keys)
 
+    if backend == "jwt":
+        from secure_vector_db.api.auth_jwt import build_jwt_auth_provider_from_env
+
+        return build_jwt_auth_provider_from_env(source)
+
     raise ValueError(f"backend de autenticacion no soportado: {backend}")
 
 

@@ -38,6 +38,16 @@ from secure_vector_db.api.auth_scopes import (
     scope_for_endpoint as scope_for_endpoint,
 )
 
+from secure_vector_db.api.auth_jwt import (
+    JwtAuthProvider as JwtAuthProvider,
+    build_jwt_auth_provider_from_env as build_jwt_auth_provider_from_env,
+    create_hs256_jwt as create_hs256_jwt,
+    decode_hs256_jwt as decode_hs256_jwt,
+    jwt_auth_provider_info as jwt_auth_provider_info,
+    parse_bearer_token as parse_bearer_token,
+)
+
+
 _AUTH_SCOPE_EXPORTS = [
     "ADMIN_SCOPE",
     "READ_SCOPE",
@@ -55,3 +65,19 @@ try:
     __all__.extend(_AUTH_SCOPE_EXPORTS)
 except NameError:
     __all__ = _AUTH_SCOPE_EXPORTS
+
+
+
+_JWT_AUTH_EXPORTS = [
+    "JwtAuthProvider",
+    "build_jwt_auth_provider_from_env",
+    "create_hs256_jwt",
+    "decode_hs256_jwt",
+    "jwt_auth_provider_info",
+    "parse_bearer_token",
+]
+
+try:
+    __all__.extend(_JWT_AUTH_EXPORTS)
+except NameError:
+    __all__ = _JWT_AUTH_EXPORTS

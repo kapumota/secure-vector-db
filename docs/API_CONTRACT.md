@@ -96,3 +96,18 @@ La politica de errores esperada es:
 ```
 
 El contrato publico mantiene `X-API-Key` como mecanismo estable mientras los endpoints migran gradualmente a dependencias con scope.
+#### JWT experimental
+
+El contrato publico mantiene `X-API-Key` como mecanismo estable.
+
+`JWT experimental` queda disponible solo como backend opcional mediante:
+
+```text
+SECURE_VECTOR_DB_AUTH_BACKEND=jwt
+```
+
+El header esperado es:
+
+```text
+Authorization: Bearer <token>
+```

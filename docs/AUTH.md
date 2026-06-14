@@ -85,3 +85,12 @@ La documentacion completa esta en:
 ```text
 docs/AUTH_SCOPES.md
 ```
+#### Fase 12.2 - JWT experimental
+
+La fase 12.2 agrega `JwtAuthProvider` como backend experimental.
+
+La documentacion completa esta en:
+
+```text
+docs/AUTH_JWT_EXPERIMENTAL.md
+```
