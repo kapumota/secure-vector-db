@@ -180,3 +180,7 @@ def assert_verify(db: SecureVectorDB = Depends(get_db)):
 
 
 app.add_middleware(RateLimitMiddleware)
+
+@app.get("/indexes/learned/health", tags=["indexes"], dependencies=[Depends(require_api_key)], responses={401: {"model": ErrorResponse}})
+def learned_index_health(db: SecureVectorDB = Depends(get_db)):
+    return db.learned_index_health()
