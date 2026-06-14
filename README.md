@@ -975,3 +975,11 @@ SecureVectorDB mantiene `X-API-Key` como mecanismo estable y agrega una capa `Au
 docs/AUTH.md
 secure_vector_db/api/auth.py
 ```
+#### Auth middleware y scopes basicos
+
+SecureVectorDB agrega scopes basicos sobre `AuthProvider` para preparar autorizacion por operacion sin romper `X-API-Key`.
+
+```text
+docs/AUTH_SCOPES.md
+secure_vector_db/api/auth_scopes.py
+```

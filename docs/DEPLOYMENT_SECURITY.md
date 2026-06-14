@@ -84,3 +84,16 @@ SECURE_VECTOR_DB_API_KEYS=clave-a,clave-b
 ```
 
 `SECURE_VECTOR_DB_AUTH_BACKEND=disabled` solo debe usarse en pruebas controladas.
+#### Scopes de autenticacion
+
+Para despliegues actuales se puede mantener scope completo por API key:
+
+```bash
+SECURE_VECTOR_DB_AUTH_SCOPES=read,write,admin
+```
+
+Para despliegues mas restrictivos se puede limitar a lectura:
+
+```bash
+SECURE_VECTOR_DB_AUTH_SCOPES=read
+```
