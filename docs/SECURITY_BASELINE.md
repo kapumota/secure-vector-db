@@ -133,3 +133,7 @@ OAuth2 fuera del alcance inmediato
 #### Auth middleware compatible
 
 La capa de Auth middleware permite aplicar scopes basicos de forma gradual sin romper `X-API-Key`.
+
+#### Merkle incremental interno
+
+La Fase 13.0 incorpora Merkle incremental como nucleo interno de integridad.

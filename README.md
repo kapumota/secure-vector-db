@@ -991,3 +991,11 @@ SecureVectorDB mantiene `X-API-Key` como backend estable y agrega `JwtAuthProvid
 docs/AUTH_JWT_EXPERIMENTAL.md
 secure_vector_db/api/auth_jwt.py
 ```
+#### Merkle incremental
+
+SecureVectorDB agrega un nucleo interno de `Merkle incremental` para preparar integridad verificable escalable.
+
+```text
+docs/MERKLE_INCREMENTAL.md
+secure_vector_db/crypto/incremental_merkle.py
+```
