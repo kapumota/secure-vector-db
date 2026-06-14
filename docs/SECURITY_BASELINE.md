@@ -157,3 +157,10 @@ El log JSONL no expone datos sensibles y queda pensado para evidence pack de rel
 La Fase 14.0 agrega Evidence Pack y release hardening.
 
 El release genera manifest de evidencia, valida documentacion minima, evita artefactos temporales criticos y confirma la linea Merkle de integridad verificable.
+#### Supply chain security
+
+La Fase 14.1 agrega evidencia de supply chain para el release.
+
+La Fase 14.1 agrega SBOM y vulnerability scan.
+
+El proyecto genera reportes en `reports/supply-chain/` y puede usar `pip-audit` cuando esta disponible.

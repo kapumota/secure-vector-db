@@ -1035,3 +1035,12 @@ docs/RELEASE_EVIDENCE.md
 scripts/release_evidence.py
 make release-check
 ```
+#### SBOM y vulnerability scan
+
+SecureVectorDB agrega reportes de supply chain para release.
+
+```text
+docs/SUPPLY_CHAIN_SECURITY.md
+scripts/supply_chain_security.py
+make supply-chain-check
+```

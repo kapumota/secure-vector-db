@@ -159,6 +159,26 @@ def check_merkle_evidence_files(root: Path) -> ReleaseEvidenceCheck:
     )
 
 
+def check_supply_chain_security(root: Path) -> ReleaseEvidenceCheck:
+    """Valida archivos base de seguridad de supply chain."""
+    required = [
+        "docs/SUPPLY_CHAIN_SECURITY.md",
+        "scripts/supply_chain_security.py",
+    ]
+    missing = [name for name in required if not (root / name).exists()]
+    if missing:
+        return ReleaseEvidenceCheck(
+            name="supply-chain-security",
+            status="failed",
+            message="faltan archivos de supply chain: " + ", ".join(missing),
+        )
+    return ReleaseEvidenceCheck(
+        name="supply-chain-security",
+        status="passed",
+        message="configuracion de supply chain presente",
+    )
+
+
 def collect_report_files(root: Path) -> list[str]:
     """Recolecta reportes existentes sin exigir que todos existan."""
     candidates = [
@@ -183,6 +203,7 @@ def build_release_manifest(root: Path) -> ReleaseEvidenceManifest:
         check_no_forbidden_artifacts(root),
         check_no_plain_env_files(root),
         check_merkle_evidence_files(root),
+        check_supply_chain_security(root),
     ]
     return ReleaseEvidenceManifest(
         generated_at=datetime.now(timezone.utc).isoformat(),
