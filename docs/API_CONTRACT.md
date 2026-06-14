@@ -185,3 +185,40 @@ reports/docker/docker-smoke.json
 La Fase 15.0 no cambia endpoints publicos.
 
 Agrega integracion interna opt-in para que las escrituras reales actualicen Merkle persistente cuando `SECURE_VECTOR_DB_ENABLE_MERKLE_WRITE_INTEGRATION=true`.
+#### Fase 16.0 - API contract freeze y versionado
+
+El contrato publico queda separado en superficie estable y experimental.
+
+#### Superficie estable
+
+```text
+storage SQLite
+API key
+scopes read/write/admin
+rate limiting memory
+evidence pack
+supply chain check base
+coverage check base
+Docker smoke test base
+Merkle write integration opt-in
+```
+
+#### Superficie experimental
+
+```text
+JWT
+Redis rate limiting
+Merkle production API
+learned index
+coverage strict
+docker smoke strict
+version strict
+```
+
+#### Politica de versionado
+
+La fuente principal de version es `pyproject.toml`.
+
+Un cambio incompatible en superficie estable requiere version mayor.
+
+El tag recomendado para release es `vX.Y.Z`.

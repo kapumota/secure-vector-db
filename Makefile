@@ -43,3 +43,10 @@ docker-smoke-test:
 .PHONY: docker-smoke-strict
 docker-smoke-strict:
 	python scripts/docker_smoke_test.py --strict
+.PHONY: version-check
+version-check:
+	python scripts/version_check.py --check
+
+.PHONY: version-strict
+version-strict:
+	python scripts/version_check.py --check --require-tag

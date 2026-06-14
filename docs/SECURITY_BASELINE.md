@@ -174,3 +174,10 @@ Los targets base generan reportes sin romper entornos donde falten herramientas 
 La Fase 15.0 agrega integracion opt-in entre insert, delete y Merkle persistente.
 
 La integracion no guarda texto, vectores ni metadata privada en las tablas Merkle. Solo persiste digests, nodos y raiz.
+#### Versionado y contrato congelado
+
+La Fase 16.0 agrega validacion de versionado y API contract freeze.
+
+El modo base valida `pyproject.toml`, `CHANGELOG.md` y `docs/API_CONTRACT.md`.
+
+El modo estricto exige tag Git exacto compatible con la version declarada.
