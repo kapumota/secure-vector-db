@@ -148,3 +148,13 @@ Documento relacionado:
 ```text
 docs/LEARNED_INDEX_PERSISTENCE.md
 ```
+
+#### Salud y drift ligero
+
+La Fase 5 agrega diagnostico operativo del indice aprendido.
+
+Documento relacionado:
+
+```text
+docs/LEARNED_INDEX_HEALTH.md
+```

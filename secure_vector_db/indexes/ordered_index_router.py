@@ -113,6 +113,7 @@ class OrderedIndexRouter:
             "learned_enabled": self._enabled,
             "learned_segments": learned_stats["segmentos"],
             "learned_max_error": learned_stats["error_maximo_observado"],
+            "learned_configured_max_error": learned_stats["error_maximo_configurado"],
             "learned_avg_error": learned_stats["error_promedio_observado"],
             "learned_fallback_count": self._fallback_count,
             "learned_fallback_rate": fallback_rate,

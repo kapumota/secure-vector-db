@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from secure_vector_db.errors import IntegrityError, RecordNotFoundError, ValidationError
 from secure_vector_db.indexes.bplus_tree import BPlusTree
 from secure_vector_db.indexes.ordered_index_router import OrderedIndexRouter
+from secure_vector_db.indexes.learned_index_health import evaluate_learned_index_health
 from secure_vector_db.indexes.factory import create_vector_index
 from secure_vector_db.ml.embeddings import create_embedding_model
 from secure_vector_db.storage.record_store import Record, RecordStore
@@ -262,6 +263,24 @@ class SecureVectorDB:
         # Elimina el modelo persistido cuando los datos cambian.
         if self._learned_store:
             self._learned_store.delete(self._learned_index_name)
+
+    def learned_index_health(self, fallback_threshold: float = 0.20) -> Dict[str, Any]:
+        """Devuelve salud y recomendacion operativa del indice aprendido."""
+        with self._lock:
+            if fallback_threshold < 0.0 or fallback_threshold > 1.0:
+                raise ValidationError("fallback_threshold debe estar entre 0 y 1")
+            stats = self.ordered_index.stats()
+            stats["learned_persisted"] = bool(
+                self._learned_store and self._learned_store.has_index(self._learned_index_name)
+            )
+            current_key_count = len(self._ordered_record_ids())
+            return evaluate_learned_index_health(stats, current_key_count, fallback_threshold)
+
+    def retrain_learned_index(self, max_error: int = 64) -> Dict[str, Any]:
+        """Reentrena explicitamente el indice aprendido y devuelve su salud."""
+        training = self.train_learned_index(max_error)
+        health = self.learned_index_health()
+        return {"training": training, "health": health}
 
     def _disable_learned_index(self, reason: str) -> None:
         # Desactiva el indice aprendido si los datos cambiaron.
