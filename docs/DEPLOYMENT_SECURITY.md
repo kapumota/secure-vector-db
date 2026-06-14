@@ -68,3 +68,19 @@ SECURE_VECTOR_DB_RATE_LIMIT_REDIS_URL=redis://localhost:6379/0
 ```
 
 El archivo `docker-compose.redis.yml` levanta un Redis local para pruebas de integracion.
+#### Configuracion de AuthProvider
+
+Para despliegue local controlado:
+
+```bash
+SECURE_VECTOR_DB_AUTH_BACKEND=api_key
+SECURE_VECTOR_DB_API_KEY=clave-local
+```
+
+Para rotacion simple se puede preparar una lista separada por comas:
+
+```bash
+SECURE_VECTOR_DB_API_KEYS=clave-a,clave-b
+```
+
+`SECURE_VECTOR_DB_AUTH_BACKEND=disabled` solo debe usarse en pruebas controladas.

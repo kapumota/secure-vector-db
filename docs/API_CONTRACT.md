@@ -73,3 +73,8 @@ SecureVectorDB se mantiene como base vectorial verificable y experimental, con c
 El contrato publico de API no expone todavia seleccion de backend persistente.
 
 La Fase 10 prepara internamente `PersistentRecordStore`, pero SQLite sigue siendo el backend estable del release actual.
+#### Relacion con AuthProvider
+
+El contrato publico mantiene `X-API-Key` como mecanismo estable.
+
+Internamente, la Fase 12.0 agrega `AuthProvider` y `ApiKeyAuthProvider` para preparar backends futuros sin cambiar endpoints ni respuestas publicas.

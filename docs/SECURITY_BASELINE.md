@@ -116,3 +116,16 @@ SQLite sigue siendo el backend persistente principal en el release actual.
 #### Redis rate limiting distribuido
 
 El backend `RedisRateLimiter` habilita rate limiting distribuido para despliegues con multiples workers o replicas.
+#### Auth provider layer
+
+La Fase 12.0 agrega `Auth provider layer` para separar la autenticacion actual de la logica HTTP.
+
+El backend estable sigue siendo `ApiKeyAuthProvider` sobre `X-API-Key`.
+
+Backends posteriores quedan planificados:
+
+```text
+AuthMiddleware con scopes basicos
+JwtAuthProvider experimental
+OAuth2 fuera del alcance inmediato
+```
