@@ -147,3 +147,8 @@ La raiz persistida se valida contra hojas persistidas para detectar corrupcion b
 La Fase 13.2 agrega evidencia Merkle verificable.
 
 El reporte no expone datos sensibles. Solo publica raiz, estado, conteos y modo de recovery.
+#### Auditoria Merkle productiva
+
+La Fase 13.3 agrega auditoria Merkle para eventos de root, verify y evidence.
+
+El log JSONL no expone datos sensibles y queda pensado para evidence pack de release.

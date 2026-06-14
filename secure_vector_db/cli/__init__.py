@@ -1,0 +1,1 @@
+"""CLI internas de SecureVectorDB."""

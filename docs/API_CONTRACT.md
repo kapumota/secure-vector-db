@@ -137,3 +137,21 @@ GET /merkle/evidence
 ```
 
 El router no se conecta automaticamente al servidor principal. La integracion productiva debe ser explicita.
+#### Router Merkle productivo
+
+La Fase 13.3 agrega integracion productiva controlada para Merkle.
+
+```text
+SECURE_VECTOR_DB_ENABLE_MERKLE_API=true
+GET /merkle/root
+GET /merkle/verify
+GET /merkle/evidence
+```
+
+Permisos recomendados:
+
+```text
+/merkle/root     -> read
+/merkle/verify   -> admin
+/merkle/evidence -> admin
+```
