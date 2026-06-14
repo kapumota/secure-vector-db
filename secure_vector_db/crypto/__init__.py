@@ -20,6 +20,13 @@ from secure_vector_db.crypto.merkle_evidence import (
     verify_merkle_evidence as verify_merkle_evidence,
 )
 
+from secure_vector_db.crypto.merkle_audit import (
+    JsonlMerkleAuditLog as JsonlMerkleAuditLog,
+    MerkleAuditEvent as MerkleAuditEvent,
+    append_merkle_audit_event as append_merkle_audit_event,
+    build_merkle_audit_event as build_merkle_audit_event,
+)
+
 __all__ = [
     "IncrementalMerkleTree",
     "MerkleNodeDigest",
@@ -34,4 +41,8 @@ __all__ = [
     "build_merkle_evidence_report",
     "export_merkle_evidence_json",
     "verify_merkle_evidence",
+    "JsonlMerkleAuditLog",
+    "MerkleAuditEvent",
+    "append_merkle_audit_event",
+    "build_merkle_audit_event",
 ]

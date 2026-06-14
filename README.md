@@ -1016,3 +1016,13 @@ docs/MERKLE_EVIDENCE.md
 secure_vector_db/crypto/merkle_evidence.py
 secure_vector_db/api/merkle_evidence.py
 ```
+#### Integracion productiva y auditoria Merkle
+
+SecureVectorDB agrega instalacion productiva controlada, CLI interna y auditoria Merkle en JSONL.
+
+```text
+docs/MERKLE_AUDIT.md
+secure_vector_db/api/merkle_production.py
+secure_vector_db/cli/merkle_evidence.py
+scripts/merkle_evidence.py
+```

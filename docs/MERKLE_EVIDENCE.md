@@ -75,3 +75,10 @@ La integracion productiva del router debe hacerse de forma explicita cuando se d
 ```text
 Fase 13.3 - Integracion productiva y auditoria Merkle
 ```
+#### Fase 13.3 - Integracion productiva y auditoria
+
+La integracion productiva y auditoria Merkle se documenta en:
+
+```text
+docs/MERKLE_AUDIT.md
+```
