@@ -967,3 +967,11 @@ docs/RATE_LIMITING.md
 requirements-redis.txt
 docker-compose.redis.yml
 ```
+#### Auth provider layer
+
+SecureVectorDB mantiene `X-API-Key` como mecanismo estable y agrega una capa `AuthProvider` para preparar backends futuros sin romper compatibilidad.
+
+```text
+docs/AUTH.md
+secure_vector_db/api/auth.py
+```
