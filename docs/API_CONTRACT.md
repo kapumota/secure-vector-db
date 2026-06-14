@@ -116,3 +116,12 @@ Authorization: Bearer <token>
 La Fase 13.0 agrega un nucleo interno de Merkle incremental.
 
 Esta fase no cambia endpoints ni respuestas publicas. La exposicion de metricas o pruebas Merkle por API queda fuera del alcance inmediato.
+#### Persistencia Merkle interna
+
+La Fase 13.1 agrega persistencia interna de Merkle incremental.
+
+```text
+docs/MERKLE_PERSISTENCE.md
+```
+
+Esta fase no cambia endpoints ni respuestas publicas. La exposicion de pruebas Merkle por API queda para una fase posterior.

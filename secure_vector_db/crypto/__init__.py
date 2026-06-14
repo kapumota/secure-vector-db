@@ -7,6 +7,12 @@ from secure_vector_db.crypto.incremental_merkle import (
     hash_pair as hash_pair,
 )
 
+from secure_vector_db.crypto.merkle_persistence import (
+    MerklePersistenceStats as MerklePersistenceStats,
+    MerkleRecoveryError as MerkleRecoveryError,
+    SQLiteMerkleNodeStore as SQLiteMerkleNodeStore,
+)
+
 __all__ = [
     "IncrementalMerkleTree",
     "MerkleNodeDigest",
@@ -14,4 +20,7 @@ __all__ = [
     "compute_merkle_root_hex",
     "hash_leaf",
     "hash_pair",
+    "MerklePersistenceStats",
+    "MerkleRecoveryError",
+    "SQLiteMerkleNodeStore",
 ]

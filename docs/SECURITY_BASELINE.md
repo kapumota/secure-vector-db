@@ -137,3 +137,8 @@ La capa de Auth middleware permite aplicar scopes basicos de forma gradual sin r
 #### Merkle incremental interno
 
 La Fase 13.0 incorpora Merkle incremental como nucleo interno de integridad.
+#### Persistencia y recovery de Merkle incremental
+
+La Fase 13.1 agrega Persistencia y recovery de Merkle incremental.
+
+La raiz persistida se valida contra hojas persistidas para detectar corrupcion basica antes de reconstruir nodos internos.
