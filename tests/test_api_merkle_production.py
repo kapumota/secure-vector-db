@@ -10,6 +10,19 @@ from secure_vector_db.crypto.merkle_audit import JsonlMerkleAuditLog
 from secure_vector_db.crypto.merkle_persistence import SQLiteMerkleNodeStore
 
 
+def _collect_route_paths(routes) -> set[str]:
+    # Recolecta rutas directas y anidadas de FastAPI.
+    paths: set[str] = set()
+    for route in routes:
+        route_path = getattr(route, "path", "")
+        if route_path:
+            paths.add(route_path)
+        nested_routes = getattr(route, "routes", None)
+        if nested_routes is not None:
+            paths.update(_collect_route_paths(nested_routes))
+    return paths
+
+
 def _allow() -> None:
     return None
 
@@ -48,7 +61,7 @@ def test_install_merkle_evidence_routes_registers_router(tmp_path) -> None:
     app = FastAPI()
     installed = install_merkle_evidence_routes(app, tmp_path / "merkle.sqlite", enabled=True)
     assert installed is True
-    route_paths = {getattr(route, "path", "") for route in app.routes}
+    route_paths = _collect_route_paths(app.routes)
     assert "/merkle/root" in route_paths
 
 
