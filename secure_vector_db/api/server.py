@@ -184,3 +184,12 @@ app.add_middleware(RateLimitMiddleware)
 @app.get("/indexes/learned/health", tags=["indexes"], dependencies=[Depends(require_api_key)], responses={401: {"model": ErrorResponse}})
 def learned_index_health(db: SecureVectorDB = Depends(get_db)):
     return db.learned_index_health()
+
+@app.get("/explain/records/{record_id}", tags=["explain"], dependencies=[Depends(require_api_key)], responses={401: {"model": ErrorResponse}})
+def explain_record(record_id: int, db: SecureVectorDB = Depends(get_db)):
+    return db.explain_record(record_id)
+
+
+@app.get("/explain/range", tags=["explain"], dependencies=[Depends(require_api_key)], responses={400: {"model": ErrorResponse}, 401: {"model": ErrorResponse}})
+def explain_range(start: int = Query(...), end: int = Query(...), db: SecureVectorDB = Depends(get_db)):
+    return db.explain_range(start, end)
