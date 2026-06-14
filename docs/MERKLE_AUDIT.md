@@ -76,3 +76,10 @@ No se registran vectores, payloads, metadatos privados ni digests por registro.
 ```text
 Fase 14 - Evidence Pack y release hardening
 ```
+#### Fase 14.0 - Evidence Pack
+
+La evidencia Merkle y auditoria alimentan el evidence pack de release.
+
+```text
+docs/RELEASE_EVIDENCE.md
+```

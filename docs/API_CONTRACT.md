@@ -155,3 +155,12 @@ Permisos recomendados:
 /merkle/verify   -> admin
 /merkle/evidence -> admin
 ```
+#### Evidencia de release
+
+La Fase 14.0 agrega evidence pack de release sin cambiar endpoints publicos.
+
+```text
+make release-check
+reports/release/release-manifest.json
+docs/RELEASE_EVIDENCE.md
+```
