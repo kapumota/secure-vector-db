@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
-from typing import Iterable, Literal
+from typing import Iterable, Literal, Mapping
 
 UpdateMode = Literal["path", "rebuild", "noop"]
 
@@ -101,6 +101,44 @@ class IncrementalMerkleTree:
     def from_items(cls, items: Iterable[tuple[int, str | bytes]]) -> "IncrementalMerkleTree":
         """Crea un arbol desde pares record_id y contenido canonico."""
         return cls(items)
+
+    @classmethod
+    def from_leaf_digests(
+        cls,
+        leaf_digests: Mapping[int, str | bytes],
+    ) -> "IncrementalMerkleTree":
+        """Crea un arbol desde digests de hojas ya calculados."""
+        tree = cls()
+        tree.rebuild_from_leaf_digests(leaf_digests)
+        return tree
+
+    def rebuild_from_leaf_digests(
+        self,
+        leaf_digests: Mapping[int, str | bytes],
+    ) -> MerkleUpdateResult:
+        """Reconstruye estructura interna desde digests de hojas."""
+        parsed: dict[int, bytes] = {}
+        for record_id, digest in leaf_digests.items():
+            _ensure_record_id(record_id)
+            if isinstance(digest, str):
+                try:
+                    digest_bytes = bytes.fromhex(digest)
+                except ValueError as exc:
+                    raise ValueError("digest de hoja invalido") from exc
+            else:
+                digest_bytes = digest
+
+            if len(digest_bytes) != 32:
+                raise ValueError("digest de hoja debe tener 32 bytes")
+            parsed[record_id] = digest_bytes
+
+        self._leaf_hashes = parsed
+        self._rebuild_levels_from_leaf_hashes()
+        return MerkleUpdateResult(
+            mode="rebuild",
+            root_hex=self.root_hex,
+            touched_nodes=self._count_nodes(),
+        )
 
     @property
     def size(self) -> int:

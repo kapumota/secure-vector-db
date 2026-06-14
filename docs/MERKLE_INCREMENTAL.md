@@ -56,3 +56,10 @@ Fase 13.1 - Persistencia y recovery de Merkle incremental
 Riesgo bajo.
 
 La fase agrega un modulo interno y pruebas, sin reemplazar todavia el flujo publico de persistencia. Esto permite validar el nucleo incremental antes de acoplarlo al storage durable.
+#### Fase 13.1 - Persistencia y recovery
+
+La persistencia y recovery del arbol incremental se documenta en:
+
+```text
+docs/MERKLE_PERSISTENCE.md
+```

@@ -999,3 +999,11 @@ SecureVectorDB agrega un nucleo interno de `Merkle incremental` para preparar in
 docs/MERKLE_INCREMENTAL.md
 secure_vector_db/crypto/incremental_merkle.py
 ```
+#### Persistencia y recovery de Merkle incremental
+
+SecureVectorDB agrega persistencia interna para Merkle incremental sobre SQLite.
+
+```text
+docs/MERKLE_PERSISTENCE.md
+secure_vector_db/crypto/merkle_persistence.py
+```
