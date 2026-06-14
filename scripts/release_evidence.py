@@ -200,6 +200,35 @@ def check_coverage_and_docker_tools(root: Path) -> ReleaseEvidenceCheck:
     )
 
 
+def check_merkle_write_integration(root: Path) -> ReleaseEvidenceCheck:
+    """Valida integracion Merkle con escrituras reales."""
+    required = [
+        "docs/MERKLE_WRITE_INTEGRATION.md",
+        "secure_vector_db/crypto/merkle_write_integration.py",
+    ]
+    missing = [name for name in required if not (root / name).exists()]
+    if missing:
+        return ReleaseEvidenceCheck(
+            name="merkle-write-integration",
+            status="failed",
+            message="faltan archivos de integracion Merkle: " + ", ".join(missing),
+        )
+
+    database_text = (root / "secure_vector_db" / "database.py").read_text(encoding="utf-8")
+    if "_apply_merkle_write_insert" not in database_text:
+        return ReleaseEvidenceCheck(
+            name="merkle-write-integration",
+            status="failed",
+            message="database.py no conecta insert con Merkle",
+        )
+
+    return ReleaseEvidenceCheck(
+        name="merkle-write-integration",
+        status="passed",
+        message="integracion Merkle con escrituras reales presente",
+    )
+
+
 def collect_report_files(root: Path) -> list[str]:
     """Recolecta reportes existentes sin exigir que todos existan."""
     candidates = [
@@ -226,6 +255,7 @@ def build_release_manifest(root: Path) -> ReleaseEvidenceManifest:
         check_merkle_evidence_files(root),
         check_supply_chain_security(root),
         check_coverage_and_docker_tools(root),
+        check_merkle_write_integration(root),
     ]
     return ReleaseEvidenceManifest(
         generated_at=datetime.now(timezone.utc).isoformat(),

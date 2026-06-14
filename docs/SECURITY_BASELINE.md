@@ -169,3 +169,8 @@ El proyecto genera reportes en `reports/supply-chain/` y puede usar `pip-audit` 
 La Fase 14.2 agrega coverage gate y Docker smoke test para release hardening.
 
 Los targets base generan reportes sin romper entornos donde falten herramientas opcionales. Los targets estrictos se reservan para release candidate.
+#### Integracion Merkle con escrituras reales
+
+La Fase 15.0 agrega integracion opt-in entre insert, delete y Merkle persistente.
+
+La integracion no guarda texto, vectores ni metadata privada en las tablas Merkle. Solo persiste digests, nodos y raiz.

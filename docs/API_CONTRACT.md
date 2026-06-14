@@ -180,3 +180,8 @@ La Fase 14.2 agrega evidencia de cobertura y contenedor sin cambiar endpoints pu
 reports/coverage/coverage-summary.json
 reports/docker/docker-smoke.json
 ```
+#### Merkle write integration
+
+La Fase 15.0 no cambia endpoints publicos.
+
+Agrega integracion interna opt-in para que las escrituras reales actualicen Merkle persistente cuando `SECURE_VECTOR_DB_ENABLE_MERKLE_WRITE_INTEGRATION=true`.
