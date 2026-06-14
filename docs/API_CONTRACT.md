@@ -111,3 +111,8 @@ El header esperado es:
 ```text
 Authorization: Bearer <token>
 ```
+#### Merkle incremental
+
+La Fase 13.0 agrega un nucleo interno de Merkle incremental.
+
+Esta fase no cambia endpoints ni respuestas publicas. La exposicion de metricas o pruebas Merkle por API queda fuera del alcance inmediato.
