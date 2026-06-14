@@ -21,3 +21,36 @@ Para reportar una vulnerabilidad, abre un issue privado o contacta al mantenedor
 - La autenticación por API key es simple. Para producción se recomienda OAuth2, OIDC o integración con un proveedor de identidad.
 - SQLite es adecuado para persistencia local, no para coordinación distribuida de alto volumen.
 - La verificación Merkle detecta alteraciones del dataset, pero no reemplaza auditoría, firmas externas ni control de acceso granular.
+
+
+### Baseline de seguridad de release
+
+#### Alcance
+
+SecureVectorDB incluye una baseline minima de seguridad para release experimental.
+
+La baseline cubre:
+
+```text
+- contenedor no root;
+- autenticacion simple con X-API-Key;
+- documentacion de limites de rate limiting en memoria;
+- documentacion de SQLite como backend persistente principal;
+- auditoria local con scripts/security_audit.py;
+- politica de no versionar secretos.
+```
+
+#### Limites
+
+Esta baseline no equivale a seguridad enterprise.
+
+No incluye todavia:
+
+```text
+- OAuth2 completo;
+- JWT con rotacion;
+- Redis rate limiting;
+- PostgreSQL como backend persistente;
+- Merkle incremental;
+- RBAC avanzado.
+```

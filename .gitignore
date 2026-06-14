@@ -46,3 +46,5 @@ Thumbs.db
 # Caches de herramientas
 # Artefactos de build
 # Reportes locales
+# Seguridad local
+demo.sqlite
