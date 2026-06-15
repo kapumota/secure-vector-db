@@ -50,7 +50,7 @@ SecureVectorDB permite:
 
 #### Estado del proyecto
 
-El proyecto está preparado como **software base inicial** de un sistema de recuperación semántica verificable.
+El proyecto está preparado como **producto versionado inicial** de un sistema de recuperación semántica verificable.
 
 No se presenta como una base de datos distribuida enterprise completamente terminada. Para ese nivel todavía serían necesarios componentes como replicación distribuida, consenso, monitoreo avanzado, control multiusuario robusto y escalabilidad horizontal.
 
@@ -1081,4 +1081,21 @@ SecureVectorDB exige cobertura estricta antes del release inicial.
 docs/COVERAGE_UPLIFT.md
 make coverage-uplift-check
 make release-initial-check
+```
+#### Release candidate v1.0.0-rc1
+
+SecureVectorDB se presenta como producto versionado inicial.
+
+El proyecto ya cuenta con versionado, contrato API congelado, evidence pack, coverage strict y checklist de release inicial.
+
+```text
+make version-check
+make release-initial-check
+make release-candidate-check
+```
+
+El gate estricto con tag se ejecuta despues de crear `v1.0.0-rc1`:
+
+```text
+make release-candidate-strict
 ```

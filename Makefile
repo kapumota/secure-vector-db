@@ -65,3 +65,14 @@ release-initial-check:
 	python scripts/docker_smoke_test.py
 	python scripts/version_check.py --check
 	python scripts/release_evidence.py --check
+.PHONY: release-candidate-check
+release-candidate-check:
+	$(MAKE) release-initial-check
+	python scripts/version_check.py --check
+	python scripts/release_evidence.py --check
+
+.PHONY: release-candidate-strict
+release-candidate-strict:
+	$(MAKE) release-initial-check
+	python scripts/version_check.py --check --require-tag
+	python scripts/release_evidence.py --check

@@ -141,3 +141,15 @@ make release-initial-check
 ```
 
 El umbral objetivo se mantiene en 80 por ciento.
+#### Fase 17.0 - Release candidate v1.0.0-rc1
+
+El evidence pack incorpora validacion de release candidate.
+
+```text
+docs/RELEASE_CANDIDATE.md
+make release-candidate-check
+make release-candidate-strict
+VERSION
+```
+
+El README debe describir el proyecto como producto versionado inicial.

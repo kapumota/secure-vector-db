@@ -222,3 +222,8 @@ La fuente principal de version es `pyproject.toml`.
 Un cambio incompatible en superficie estable requiere version mayor.
 
 El tag recomendado para release es `vX.Y.Z`.
+#### Fase 17.0 - Release candidate
+
+El contrato publico congelado en Fase 16.0 se mantiene para `v1.0.0-rc1`.
+
+No se agregan endpoints publicos nuevos en esta fase.

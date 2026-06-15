@@ -288,6 +288,51 @@ def check_coverage_uplift(root: Path) -> ReleaseEvidenceCheck:
     )
 
 
+def check_release_candidate_readiness(root: Path) -> ReleaseEvidenceCheck:
+    """Valida archivos de release candidate."""
+    required = [
+        "docs/RELEASE_CANDIDATE.md",
+        "VERSION",
+    ]
+    missing = [name for name in required if not (root / name).exists()]
+    if missing:
+        return ReleaseEvidenceCheck(
+            name="release-candidate",
+            status="failed",
+            message="faltan archivos de release candidate: " + ", ".join(missing),
+        )
+
+    readme_text = (root / "README.md").read_text(encoding="utf-8")
+    if "software base inicial" in readme_text:
+        return ReleaseEvidenceCheck(
+            name="release-candidate",
+            status="failed",
+            message="README aun usa software base inicial",
+        )
+
+    makefile_text = (root / "Makefile").read_text(encoding="utf-8")
+    if "release-candidate-check" not in makefile_text:
+        return ReleaseEvidenceCheck(
+            name="release-candidate",
+            status="failed",
+            message="Makefile no contiene release-candidate-check",
+        )
+
+    version_text = (root / "VERSION").read_text(encoding="utf-8").strip()
+    if version_text != "1.0.0rc1":
+        return ReleaseEvidenceCheck(
+            name="release-candidate",
+            status="failed",
+            message="VERSION no declara 1.0.0rc1",
+        )
+
+    return ReleaseEvidenceCheck(
+        name="release-candidate",
+        status="passed",
+        message="release candidate v1.0.0-rc1 preparado",
+    )
+
+
 def collect_report_files(root: Path) -> list[str]:
     """Recolecta reportes existentes sin exigir que todos existan."""
     candidates = [
@@ -317,6 +362,7 @@ def build_release_manifest(root: Path) -> ReleaseEvidenceManifest:
         check_merkle_write_integration(root),
         check_versioning_contract(root),
         check_coverage_uplift(root),
+        check_release_candidate_readiness(root),
     ]
     return ReleaseEvidenceManifest(
         generated_at=datetime.now(timezone.utc).isoformat(),

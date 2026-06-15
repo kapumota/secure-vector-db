@@ -90,14 +90,24 @@ def detect_exact_git_tag(root: Path) -> str:
 
 def expected_release_tag(version: str) -> str:
     """Calcula tag esperado para una version."""
-    return "v" + version if version else ""
+    if not version:
+        return ""
+
+    rc_match = re.match(r"^(\d+\.\d+\.\d+)rc(\d+)$", version)
+    if rc_match:
+        return "v" + rc_match.group(1) + "-rc" + rc_match.group(2)
+
+    return "v" + version
 
 
 def is_semantic_version(version: str) -> bool:
-    """Valida formato semver basico."""
-    pattern = r"^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$"
-    return bool(re.match(pattern, version))
-
+    """Valida formato semver basico y prerelease PEP 440 usado por Python."""
+    patterns = [
+        r"^\d+\.\d+\.\d+$",
+        r"^\d+\.\d+\.\d+(?:rc\d+|a\d+|b\d+)$",
+        r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$",
+    ]
+    return any(re.match(pattern, version) for pattern in patterns)
 
 def check_pyproject_version(version: str) -> VersionCheckItem:
     """Valida version declarada en pyproject.toml."""
@@ -165,7 +175,8 @@ def check_git_tag(root: Path, version: str, require_tag: bool) -> VersionCheckIt
             message="sin tag exacto en modo base",
         )
 
-    if tag not in {version, expected}:
+    accepted_tags = {version, expected, "v" + version}
+    if tag not in accepted_tags:
         return VersionCheckItem(
             name="git-tag",
             status="failed",
