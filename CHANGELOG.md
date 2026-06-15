@@ -35,3 +35,11 @@
 - Agrega pruebas adicionales sobre LinearVectorIndex, RecordStore, store factory, embeddings y Merkle write env.
 - Mantiene `coverage-strict` como criterio de release inicial.
 - No cambia contrato publico ni endpoints.
+#### Fase 17.0 - Release candidate v1.0.0-rc1
+
+- Actualiza la version a `1.0.0rc1`.
+- Define el tag esperado `v1.0.0-rc1`.
+- Agrega `docs/RELEASE_CANDIDATE.md`.
+- Agrega `make release-candidate-check`.
+- Agrega `make release-candidate-strict`.
+- Actualiza README para presentar el proyecto como producto versionado inicial.
