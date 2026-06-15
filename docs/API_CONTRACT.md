@@ -227,3 +227,8 @@ El tag recomendado para release es `vX.Y.Z`.
 El contrato publico congelado en Fase 16.0 se mantiene para `v1.0.0-rc1`.
 
 No se agregan endpoints publicos nuevos en esta fase.
+#### Fase 18.0 - Release final
+
+El contrato publico congelado se mantiene para `v1.0.0`.
+
+No se agregan endpoints publicos nuevos en esta fase.

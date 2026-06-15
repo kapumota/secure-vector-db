@@ -60,3 +60,8 @@ make release-candidate-strict pasa despues de crear tag
 Este release candidate no publica artefactos externos.
 
 La publicacion de paquete, firma de SBOM, provenance y release final quedan para fases posteriores.
+#### Nota sobre release final v1.0.0
+
+El release candidate `v1.0.0-rc1` queda como hito previo.
+
+El release final activo es `v1.0.0`.

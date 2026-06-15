@@ -1,3 +1,13 @@
+<!-- badges-release-start -->
+[![CI](https://github.com/kapumota/secure-vector-db/actions/workflows/ci.yml/badge.svg)](https://github.com/kapumota/secure-vector-db/actions/workflows/ci.yml)
+[![Security baseline](https://github.com/kapumota/secure-vector-db/actions/workflows/security-baseline.yml/badge.svg)](https://github.com/kapumota/secure-vector-db/actions/workflows/security-baseline.yml)
+[![Release](https://img.shields.io/github/v/release/kapumota/secure-vector-db?label=lanzamiento)](https://github.com/kapumota/secure-vector-db/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-informational)](https://github.com/kapumota/secure-vector-db/releases)
+[![Python](https://img.shields.io/badge/python-3.12%2B-informational)](https://github.com/kapumota/secure-vector-db)
+[![Licencia](https://img.shields.io/github/license/kapumota/secure-vector-db?label=licencia)](https://github.com/kapumota/secure-vector-db/blob/main/LICENSE)
+[![Release gated](https://img.shields.io/badge/release-gated-success)](https://github.com/kapumota/secure-vector-db/actions)
+<!-- badges-release-end -->
+
 ### SecureVectorDB 
 
 **SecureVectorDB** es una base de datos vectorial verificable desarrollada en Python. Integra almacenamiento persistente, búsqueda semántica, estructuras de índices, autenticación por API key, verificación de integridad mediante Merkle Tree, API REST con FastAPI, Docker, pruebas automatizadas y benchmarks reproducibles.
@@ -50,7 +60,7 @@ SecureVectorDB permite:
 
 #### Estado del proyecto
 
-El proyecto está preparado como **producto versionado inicial** de un sistema de recuperación semántica verificable.
+El proyecto está preparado como **producto versionado estable inicial** de un sistema de recuperación semántica verificable.
 
 No se presenta como una base de datos distribuida enterprise completamente terminada. Para ese nivel todavía serían necesarios componentes como replicación distribuida, consenso, monitoreo avanzado, control multiusuario robusto y escalabilidad horizontal.
 
@@ -1084,7 +1094,7 @@ make release-initial-check
 ```
 #### Release candidate v1.0.0-rc1
 
-SecureVectorDB se presenta como producto versionado inicial.
+SecureVectorDB se presenta como producto versionado estable inicial.
 
 El proyecto ya cuenta con versionado, contrato API congelado, evidence pack, coverage strict y checklist de release inicial.
 
@@ -1098,4 +1108,22 @@ El gate estricto con tag se ejecuta despues de crear `v1.0.0-rc1`:
 
 ```text
 make release-candidate-strict
+```
+#### Release final v1.0.0
+
+SecureVectorDB se presenta como producto versionado estable inicial.
+
+El proyecto cuenta con versionado, contrato API congelado, evidence pack, coverage strict, checklist de release inicial y checklist de release final.
+
+```text
+make version-check
+make release-initial-check
+make release-candidate-check
+make final-release-check
+```
+
+El gate estricto con tag se ejecuta despues de crear `v1.0.0`:
+
+```text
+make final-release-strict
 ```

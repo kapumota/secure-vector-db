@@ -110,3 +110,28 @@ El target recomendado para validar el estado previo al release inicial es:
 ```text
 make release-initial-check
 ```
+#### Release final v1.0.0
+
+La version declarada para el release final es:
+
+```text
+1.0.0
+```
+
+El tag Git recomendado es:
+
+```text
+v1.0.0
+```
+
+El modo base valida archivos y contrato:
+
+```text
+make final-release-check
+```
+
+El modo estricto exige tag exacto en HEAD:
+
+```text
+make final-release-strict
+```

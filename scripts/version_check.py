@@ -177,10 +177,16 @@ def check_git_tag(root: Path, version: str, require_tag: bool) -> VersionCheckIt
 
     accepted_tags = {version, expected, "v" + version}
     if tag not in accepted_tags:
+        if require_tag:
+            return VersionCheckItem(
+                name="git-tag",
+                status="failed",
+                message="tag Git no coincide con version declarada",
+            )
         return VersionCheckItem(
             name="git-tag",
-            status="failed",
-            message="tag Git no coincide con version declarada",
+            status="passed",
+            message="tag exacto distinto ignorado en modo base",
         )
 
     return VersionCheckItem(

@@ -43,3 +43,18 @@
 - Agrega `make release-candidate-check`.
 - Agrega `make release-candidate-strict`.
 - Actualiza README para presentar el proyecto como producto versionado inicial.
+#### Fase 18.0.3 - Release final consolidado v1.0.0
+
+- Consolida la aplicacion de release final aunque la fase anterior haya quedado parcial.
+- Actualiza la version a `1.0.0`.
+- Define el tag esperado `v1.0.0`.
+- Crea `docs/RELEASE.md`.
+- Crea `tests/test_final_release_v1_0_0.py`.
+- Coloca badges reales de GitHub Actions directamente en `README.md`.
+- Elimina la dependencia de `docs/BADGES.md`.
+- Mantiene nombres canonicos de archivos raiz como `Makefile`, `Dockerfile`, `LICENSE` y `pyproject.toml`.
+#### Fase 18.0.4 - Version check robusto ante tags locales previos
+
+- Ajusta `version_check.py` para que el modo base no falle por un tag local exacto previo.
+- Mantiene `--require-tag` como validacion estricta para release final.
+- Permite validar `v1.0.0` aunque exista un tag local residual `v1.0.0-rc1` durante el trabajo en rama.
