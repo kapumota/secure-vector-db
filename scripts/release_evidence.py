@@ -259,6 +259,35 @@ def check_versioning_contract(root: Path) -> ReleaseEvidenceCheck:
     )
 
 
+def check_coverage_uplift(root: Path) -> ReleaseEvidenceCheck:
+    """Valida archivos de coverage uplift para release inicial."""
+    required = [
+        "docs/COVERAGE_UPLIFT.md",
+        "tests/test_coverage_uplift_release_initial.py",
+    ]
+    missing = [name for name in required if not (root / name).exists()]
+    if missing:
+        return ReleaseEvidenceCheck(
+            name="coverage-uplift",
+            status="failed",
+            message="faltan archivos de coverage uplift: " + ", ".join(missing),
+        )
+
+    makefile_text = (root / "Makefile").read_text(encoding="utf-8")
+    if "release-initial-check" not in makefile_text:
+        return ReleaseEvidenceCheck(
+            name="coverage-uplift",
+            status="failed",
+            message="Makefile no contiene release-initial-check",
+        )
+
+    return ReleaseEvidenceCheck(
+        name="coverage-uplift",
+        status="passed",
+        message="coverage uplift para release inicial presente",
+    )
+
+
 def collect_report_files(root: Path) -> list[str]:
     """Recolecta reportes existentes sin exigir que todos existan."""
     candidates = [
@@ -287,6 +316,7 @@ def build_release_manifest(root: Path) -> ReleaseEvidenceManifest:
         check_coverage_and_docker_tools(root),
         check_merkle_write_integration(root),
         check_versioning_contract(root),
+        check_coverage_uplift(root),
     ]
     return ReleaseEvidenceManifest(
         generated_at=datetime.now(timezone.utc).isoformat(),

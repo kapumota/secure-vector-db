@@ -50,3 +50,18 @@ version-check:
 .PHONY: version-strict
 version-strict:
 	python scripts/version_check.py --check --require-tag
+.PHONY: coverage-uplift-check
+coverage-uplift-check:
+	python scripts/coverage_gate.py --threshold 80 --strict
+
+.PHONY: release-initial-check
+release-initial-check:
+	python scripts/security_audit.py
+	ruff check .
+	mypy secure_vector_db
+	python -m pytest -q
+	python scripts/supply_chain_security.py --check
+	python scripts/coverage_gate.py --threshold 80 --strict
+	python scripts/docker_smoke_test.py
+	python scripts/version_check.py --check
+	python scripts/release_evidence.py --check

@@ -1073,3 +1073,12 @@ scripts/version_check.py
 make version-check
 make version-strict
 ```
+#### Coverage uplift para release inicial
+
+SecureVectorDB exige cobertura estricta antes del release inicial.
+
+```text
+docs/COVERAGE_UPLIFT.md
+make coverage-uplift-check
+make release-initial-check
+```

@@ -129,3 +129,15 @@ El modo estricto para release candidate es:
 ```text
 make version-strict
 ```
+#### Fase 16.1 - Coverage uplift para release inicial
+
+El evidence pack documenta la subida de cobertura para release inicial.
+
+```text
+docs/COVERAGE_UPLIFT.md
+tests/test_coverage_uplift_release_initial.py
+make coverage-uplift-check
+make release-initial-check
+```
+
+El umbral objetivo se mantiene en 80 por ciento.

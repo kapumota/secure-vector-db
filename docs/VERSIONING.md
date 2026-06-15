@@ -101,3 +101,12 @@ Un cambio en contrato experimental puede cambiar antes de estabilizarse, pero de
 Fase 16.1 - Coverage uplift para release candidate
 Fase 17.0 - Release candidate v1.0.0-rc1
 ```
+#### Cobertura para release inicial
+
+La Fase 16.1 exige que `make coverage-strict` pase antes del release candidate.
+
+El target recomendado para validar el estado previo al release inicial es:
+
+```text
+make release-initial-check
+```
