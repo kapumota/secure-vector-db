@@ -289,10 +289,9 @@ def check_coverage_uplift(root: Path) -> ReleaseEvidenceCheck:
 
 
 def check_release_candidate_readiness(root: Path) -> ReleaseEvidenceCheck:
-    """Valida archivos de release candidate."""
+    """Valida que el release candidate quede documentado."""
     required = [
         "docs/RELEASE_CANDIDATE.md",
-        "VERSION",
     ]
     missing = [name for name in required if not (root / name).exists()]
     if missing:
@@ -318,18 +317,68 @@ def check_release_candidate_readiness(root: Path) -> ReleaseEvidenceCheck:
             message="Makefile no contiene release-candidate-check",
         )
 
-    version_text = (root / "VERSION").read_text(encoding="utf-8").strip()
-    if version_text != "1.0.0rc1":
-        return ReleaseEvidenceCheck(
-            name="release-candidate",
-            status="failed",
-            message="VERSION no declara 1.0.0rc1",
-        )
-
     return ReleaseEvidenceCheck(
         name="release-candidate",
         status="passed",
-        message="release candidate v1.0.0-rc1 preparado",
+        message="release candidate v1.0.0-rc1 documentado",
+    )
+
+def check_final_release_readiness(root: Path) -> ReleaseEvidenceCheck:
+    """Valida archivos de release final."""
+    required = [
+        "docs/RELEASE.md",
+        "VERSION",
+    ]
+    missing = [name for name in required if not (root / name).exists()]
+    if missing:
+        return ReleaseEvidenceCheck(
+            name="final-release",
+            status="failed",
+            message="faltan archivos de release final: " + ", ".join(missing),
+        )
+
+    readme_text = (root / "README.md").read_text(encoding="utf-8")
+    if "software base inicial" in readme_text:
+        return ReleaseEvidenceCheck(
+            name="final-release",
+            status="failed",
+            message="README aun usa software base inicial",
+        )
+
+    required_badges = [
+        "badges-release-start",
+        "badges-release-end",
+        "actions/workflows/ci.yml/badge.svg",
+        "actions/workflows/security-baseline.yml/badge.svg",
+    ]
+    missing_badges = [badge for badge in required_badges if badge not in readme_text]
+    if missing_badges:
+        return ReleaseEvidenceCheck(
+            name="final-release",
+            status="failed",
+            message="README no contiene badges requeridos: " + ", ".join(missing_badges),
+        )
+
+    makefile_text = (root / "Makefile").read_text(encoding="utf-8")
+    if "final-release-check" not in makefile_text:
+        return ReleaseEvidenceCheck(
+            name="final-release",
+            status="failed",
+            message="Makefile no contiene final-release-check",
+        )
+
+    version_text = (root / "VERSION").read_text(encoding="utf-8").strip()
+    if version_text != "1.0.0":
+        return ReleaseEvidenceCheck(
+            name="final-release",
+            status="failed",
+            message="VERSION no declara 1.0.0",
+        )
+
+    return ReleaseEvidenceCheck(
+        name="final-release",
+        status="passed",
+        message="release final v1.0.0 preparado",
     )
 
 
@@ -363,6 +412,7 @@ def build_release_manifest(root: Path) -> ReleaseEvidenceManifest:
         check_versioning_contract(root),
         check_coverage_uplift(root),
         check_release_candidate_readiness(root),
+        check_final_release_readiness(root),
     ]
     return ReleaseEvidenceManifest(
         generated_at=datetime.now(timezone.utc).isoformat(),

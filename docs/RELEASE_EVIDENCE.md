@@ -153,3 +153,16 @@ VERSION
 ```
 
 El README debe describir el proyecto como producto versionado inicial.
+#### Fase 18.0 - Release final v1.0.0
+
+El evidence pack incorpora validacion de release final.
+
+```text
+docs/RELEASE.md
+README.md
+make final-release-check
+make final-release-strict
+VERSION
+```
+
+El README debe describir el proyecto como producto versionado estable inicial y contener badges de lanzamiento.

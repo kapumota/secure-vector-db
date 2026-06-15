@@ -76,3 +76,14 @@ release-candidate-strict:
 	$(MAKE) release-initial-check
 	python scripts/version_check.py --check --require-tag
 	python scripts/release_evidence.py --check
+.PHONY: final-release-check
+final-release-check:
+	$(MAKE) release-initial-check
+	python scripts/version_check.py --check
+	python scripts/release_evidence.py --check
+
+.PHONY: final-release-strict
+final-release-strict:
+	$(MAKE) release-initial-check
+	python scripts/version_check.py --check --require-tag
+	python scripts/release_evidence.py --check

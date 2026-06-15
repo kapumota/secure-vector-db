@@ -192,3 +192,14 @@ make release-candidate-strict
 ```
 
 El modo estricto requiere tag Git compatible con la version declarada.
+#### Release final v1.0.0
+
+La Fase 18.0 exige que el release final use gates reproducibles.
+
+```text
+make release-initial-check
+make final-release-check
+make final-release-strict
+```
+
+El modo estricto requiere tag Git compatible con la version declarada.
