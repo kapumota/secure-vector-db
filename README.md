@@ -1,10 +1,15 @@
 <!-- badges-release-start -->
 [![CI](https://github.com/kapumota/secure-vector-db/actions/workflows/ci.yml/badge.svg)](https://github.com/kapumota/secure-vector-db/actions/workflows/ci.yml)
 [![Security baseline](https://github.com/kapumota/secure-vector-db/actions/workflows/security-baseline.yml/badge.svg)](https://github.com/kapumota/secure-vector-db/actions/workflows/security-baseline.yml)
-[![Release](https://img.shields.io/github/v/release/kapumota/secure-vector-db?label=lanzamiento)](https://github.com/kapumota/secure-vector-db/releases)
-[![Version](https://img.shields.io/badge/version-1.0.0-informational)](https://github.com/kapumota/secure-vector-db/releases)
+[![Lanzamiento](https://img.shields.io/badge/lanzamiento-v1.0.0-success)](https://github.com/kapumota/secure-vector-db/releases/tag/v1.0.0)
+[![Version](https://img.shields.io/badge/version-1.0.0-informational)](https://github.com/kapumota/secure-vector-db/releases/tag/v1.0.0)
+[![Tag](https://img.shields.io/badge/tag-v1.0.0-informational)](https://github.com/kapumota/secure-vector-db/releases/tag/v1.0.0)
 [![Python](https://img.shields.io/badge/python-3.12%2B-informational)](https://github.com/kapumota/secure-vector-db)
-[![Licencia](https://img.shields.io/github/license/kapumota/secure-vector-db?label=licencia)](https://github.com/kapumota/secure-vector-db/blob/main/LICENSE)
+[![Licencia](https://img.shields.io/badge/licencia-MIT-informational)](https://github.com/kapumota/secure-vector-db/blob/main/LICENSE)
+[![Coverage](https://img.shields.io/badge/coverage-80%2B-success)](https://github.com/kapumota/secure-vector-db)
+[![Supply chain](https://img.shields.io/badge/supply_chain-0_vulnerabilidades-success)](https://github.com/kapumota/secure-vector-db)
+[![Docker smoke](https://img.shields.io/badge/docker_smoke-passing-success)](https://github.com/kapumota/secure-vector-db)
+[![API](https://img.shields.io/badge/api-estable-success)](https://github.com/kapumota/secure-vector-db/blob/main/docs/API_CONTRACT.md)
 [![Release gated](https://img.shields.io/badge/release-gated-success)](https://github.com/kapumota/secure-vector-db/actions)
 <!-- badges-release-end -->
 

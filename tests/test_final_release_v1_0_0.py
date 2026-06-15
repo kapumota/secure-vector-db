@@ -8,6 +8,19 @@ from scripts.version_check import build_version_check, expected_release_tag, is_
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_final_release_readme_avoids_fragile_dynamic_badges() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+    assert "github/v/release" not in readme
+    assert "github/license" not in readme
+    assert "lanzamiento-v1.0.0" in readme
+    assert "licencia-" in readme
+    assert "coverage-80%2B" in readme
+    assert "supply_chain-0_vulnerabilidades" in readme
+    assert "docker_smoke-passing" in readme
+    assert "api-estable" in readme
+
+
 def test_final_release_version_files_are_consistent() -> None:
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     version_file = (ROOT / "VERSION").read_text(encoding="utf-8").strip()

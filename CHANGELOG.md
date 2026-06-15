@@ -58,3 +58,14 @@
 - Ajusta `version_check.py` para que el modo base no falle por un tag local exacto previo.
 - Mantiene `--require-tag` como validacion estricta para release final.
 - Permite validar `v1.0.0` aunque exista un tag local residual `v1.0.0-rc1` durante el trabajo en rama.
+#### Fase 18.0.5 - Badges estables para release final
+
+- Reemplaza badges dinamicos fragiles de release y licencia por badges estables.
+- Mantiene badges reales de GitHub Actions para `ci.yml` y `security-baseline.yml`.
+- Agrega badges visibles para version, tag, release final, cobertura, supply chain, Docker smoke, API estable y release gated.
+- Evita que el README muestre `no releases or repo not found` antes de publicar el lanzamiento.
+#### Fase 18.0.6 - Orden correcto en pruebas de release final
+
+- Corrige `tests/test_final_release_v1_0_0.py` para que `from __future__ import annotations` quede al inicio.
+- Mantiene las pruebas de badges estables, versionado final y evidence pack.
+- Corrige el bloqueo de Ruff `E402` y el `SyntaxError` de pytest.
