@@ -26,7 +26,7 @@ def test_api_contract_mentions_detected_routes() -> None:
 
 
 def test_cli_contract_mentions_detected_commands() -> None:
-    cli_text = (ROOT / "secure_vector_db" / "cli.py").read_text(encoding="utf-8")
+    cli_text = (ROOT / "secure_vector_db" / "cli_app.py").read_text(encoding="utf-8")
     contract_text = (ROOT / "docs" / "CLI_CONTRACT.md").read_text(encoding="utf-8")
 
     commands = set(re.findall(r"sub\.add_parser\(\s*['\"]([^'\"]+)['\"]", cli_text))

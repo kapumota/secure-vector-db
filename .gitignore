@@ -48,3 +48,5 @@ Thumbs.db
 # Reportes locales
 # Seguridad local
 demo.sqlite
+experiments/_local/
+UNKNOWN.egg-info/

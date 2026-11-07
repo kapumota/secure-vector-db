@@ -61,7 +61,7 @@ def test_database_can_open_with_learned_index_enabled(tmp_path) -> None:
     reopened.close()
 
 
-def test_ordered_index_stats_endpoint(tmp_path, monkeypatch) -> None:
+def test_ordered_index_stats_endpoint(tmp_path, monkeypatch, enable_test_api_key) -> None:
     monkeypatch.setenv("SECURE_VECTOR_DB_PATH", str(tmp_path / "api-learned.sqlite"))
     monkeypatch.setenv("SECURE_VECTOR_DB_LEARNED_INDEX", "true")
     monkeypatch.setenv("SECURE_VECTOR_DB_LEARNED_MAX_ERROR", "4")

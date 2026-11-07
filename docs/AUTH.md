@@ -94,3 +94,20 @@ La documentacion completa esta en:
 ```text
 docs/AUTH_JWT_EXPERIMENTAL.md
 ```
+
+#### Endurecimiento de autenticacion
+
+La API no acepta implicitamente la clave publica de desarrollo.
+
+Cuando SECURE_VECTOR_DB_API_KEY o SECURE_VECTOR_DB_API_KEYS
+estan configuradas, solo esas claves se consideran validas.
+
+La variable SECURE_VECTOR_DB_ALLOW_DEV_API_KEY=true habilita
+la clave predeterminada exclusivamente cuando no hay otras
+claves configuradas. Solo debe utilizarse en pruebas locales.
+
+Sin claves configuradas y sin habilitacion explicita de
+desarrollo, los endpoints protegidos rechazan la solicitud.
+
+La autenticacion por API key no sustituye TLS ni una revision
+de seguridad para un despliegue publico.

@@ -137,7 +137,7 @@ def test_bplus_duplicate_value_and_delete():
     assert tree.validate()
 
 
-def test_api_documents_auth_and_errors(tmp_path: Path, monkeypatch):
+def test_api_documents_auth_and_errors(tmp_path: Path, monkeypatch, enable_test_api_key):
     monkeypatch.setenv("SECURE_VECTOR_DB_PATH", str(tmp_path / "api-test.sqlite"))
     monkeypatch.delenv("SECURE_VECTOR_DB_API_KEY", raising=False)
 
