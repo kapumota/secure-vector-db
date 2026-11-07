@@ -45,10 +45,11 @@ class MerkleTree:
         Args:
             iterable (iterable): Colección a partir de la cual se construye el árbol.
             digest_delegate (function): Función que recibe un elemento y devuelve su hash.
-                                          Si no se especifica, se usa SHA-1.
+                                          Si no se especifica, se usa SHA-256.
         """
+        self._domain_separation = digest_delegate is None
         if digest_delegate is None:
-            digest_delegate = self.__sha1_digest
+            digest_delegate = self.__sha256_digest
         self.digest = digest_delegate
         self.__root = self.build_root(iterable)
 
@@ -56,16 +57,16 @@ class MerkleTree:
     def root(self):
         return self.__root
 
-    def __sha1_digest(self, element):
+    def __sha256_digest(self, element):
         """
-        Función digest utilizando SHA-1.
+        Función digest utilizando SHA-256.
 
         Args:
             element: Puede ser un entero, cadena o bytes.
         Returns:
             bytes: El valor hash en formato bytes.
         """
-        H = hashlib.sha1()
+        H = hashlib.sha256()
         if isinstance(element, bytes):
             H.update(element)
         elif isinstance(element, str):
@@ -78,6 +79,25 @@ class MerkleTree:
             # Fallback: convertir a cadena y codificar
             H.update(str(element).encode('utf-8'))
         return H.digest()
+
+    def _hash_leaf(self, value):
+        """Distingue hojas de nodos cuando se usa el digest por defecto."""
+        if not self._domain_separation:
+            return self.digest(value)
+        if isinstance(value, bytes):
+            encoded = value
+        elif isinstance(value, str):
+            encoded = value.encode("utf-8")
+        elif isinstance(value, int):
+            encoded = str(value).encode("ascii")
+        else:
+            encoded = repr(value).encode("utf-8")
+        return self.digest(b"leaf:" + encoded)
+
+    def _hash_pair(self, left, right):
+        if self._domain_separation:
+            return self.digest(b"node:" + left + right)
+        return self.digest(left + right)
 
     def build_root(self, iterable):
         """
@@ -93,12 +113,8 @@ class MerkleTree:
         if len(collection) == 0:
             raise Exception("La colección no puede estar vacía.")
 
-        # Si la cantidad de elementos es impar, se duplica el último para formar un par.
-        if len(collection) % 2 != 0:
-            collection.extend(collection[-1:])
-
         # Crear nodos hoja usando el digest aplicado a cada elemento
-        collection = [self.__Node(self.digest(x)) for x in collection]
+        collection = [self.__Node(self._hash_leaf(x)) for x in collection]
         return self.__build_root(collection)
 
     def __build_root(self, collection):
@@ -114,7 +130,7 @@ class MerkleTree:
         i = 0
         while i < size:
             # Concatenar los valores hash de los dos nodos y aplicar la función digest
-            digest = self.digest(collection[i].value + collection[i+1].value)
+            digest = self._hash_pair(collection[i].value, collection[i+1].value)
             node = self.__Node(digest, left=collection[i], right=collection[i+1])
             next_level.append(node)
             i += 2
@@ -132,7 +148,7 @@ class MerkleTree:
         if value is None or self.root is None:
             return False
 
-        hashed_value = self.digest(value)
+        hashed_value = self._hash_leaf(value)
         return self.__find(self.root, hashed_value) is not None
 
     def __find(self, node, value):
@@ -162,15 +178,14 @@ class MerkleTree:
         Throws:
             Exception: Si el valor no se encuentra en el árbol.
         """
-        hashed_value = self.digest(value)
+        hashed_value = self._hash_leaf(value)
         if self.__find(self.root, hashed_value) is None:
             raise Exception('Este elemento no se encuentra en el árbol.')
 
         proof = []
         self.__build_valid_proof(self.root, hashed_value, proof)
-        if len(proof) != 0:
-            # Se inserta la rama final (la raíz) en la prueba
-            proof.insert(0, (0 if proof[1][0] else 1, hashed_value))
+        # Una hoja individual tiene demostracion vacia; los demas casos
+        # incluyen exclusivamente los hashes hermanos.
         return proof
 
     def __build_valid_proof(self, node, value, proof_list):
@@ -202,5 +217,5 @@ class MerkleTree:
         self.__print(node.right, indent + 2)
 
     def __contains__(self, value):
-        hashed_value = self.digest(value)
+        hashed_value = self._hash_leaf(value)
         return self.__find(self.root, hashed_value)

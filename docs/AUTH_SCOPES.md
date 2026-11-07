@@ -73,3 +73,9 @@ def get_record(record_id: int, principal = Depends(require_read_scope)):
 Esta fase no implementa JWT ni OAuth2.
 
 La integracion completa por endpoint puede hacerse de forma incremental para evitar romper compatibilidad.
+
+#### Politica unificada posterior a la auditoria
+
+Las dependencias con scopes usan la misma lista de claves autorizadas que el servidor. Una clave de desarrollo implicita no es aceptada cuando existen claves reales configuradas; si no existe ninguna clave, la autorizacion se rechaza. La clave de desarrollo requiere `SECURE_VECTOR_DB_ALLOW_DEV_API_KEY=true` **y ausencia de claves configuradas**. Este modo no es apropiado para redes no confiables.
+
+La ruta publica `/health` devuelve exclusivamente `{"status":"ok"}`, sin rutas SQLite ni hashes persistidos.

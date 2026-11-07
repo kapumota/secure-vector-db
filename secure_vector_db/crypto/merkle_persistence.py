@@ -131,6 +131,40 @@ class SQLiteMerkleNodeStore:
             recovered_from="save",
         )
 
+    def save_existing_path(self, tree: IncrementalMerkleTree, record_id: int) -> MerklePersistenceStats:
+        """Actualiza una hoja existente y sus ancestros, sin reescribir todo."""
+        if not self.has_snapshot():
+            return self.save_tree(tree)
+        path = tree.recompute_path_to_root(record_id)
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE merkle_leaves SET digest_hex=? WHERE record_id=?",
+                (tree.leaf_digest_hex(record_id), record_id),
+            )
+            connection.executemany(
+                "INSERT INTO merkle_nodes(level, node_index, digest_hex) VALUES (?, ?, ?) "
+                "ON CONFLICT(level, node_index) DO UPDATE SET digest_hex=excluded.digest_hex",
+                [(node.level, node.index, node.digest_hex) for node in path],
+            )
+            connection.execute(
+                "UPDATE merkle_metadata SET value=? WHERE key='root_hex'",
+                (tree.root_hex,),
+            )
+        return MerklePersistenceStats(
+            leaves=tree.size,
+            nodes=self.count_nodes(),
+            root_hex=tree.root_hex,
+            recovered_from="path",
+        )
+
+    def has_snapshot(self) -> bool:
+        """Distingue una base Merkle nueva de un snapshot persistido vacio."""
+        self.initialize()
+        with self._connect() as connection:
+            return connection.execute(
+                "SELECT 1 FROM merkle_metadata WHERE key='root_hex'"
+            ).fetchone() is not None
+
     def load_leaf_digests(self) -> dict[int, str]:
         """Carga hojas persistidas."""
         self.initialize()
@@ -180,13 +214,22 @@ class SQLiteMerkleNodeStore:
         )
 
     def verify_integrity(self) -> bool:
-        """Verifica raiz persistida contra hojas persistidas."""
+        """Verifica raiz, hojas y nodos internos sin modificar el snapshot."""
         try:
             tree, _ = self.recover_tree()
-        except MerkleRecoveryError:
+            persisted_root = self.load_root_hex()
+            expected_nodes = _nodes_from_leaf_digests(tree.snapshot_leaf_digests())
+            with self._connect() as connection:
+                actual_nodes = connection.execute(
+                    "SELECT level, node_index, digest_hex FROM merkle_nodes "
+                    "ORDER BY level, node_index"
+                ).fetchall()
+            return persisted_root == tree.root_hex and expected_nodes == [
+                (int(level), int(index), str(digest))
+                for level, index, digest in actual_nodes
+            ]
+        except (MerkleRecoveryError, ValueError):
             return False
-        persisted_root = self.load_root_hex()
-        return persisted_root == tree.root_hex
 
     def rebuild_missing_nodes(self) -> MerklePersistenceStats:
         """Reconstruye nodos internos desde hojas persistidas."""

@@ -6,20 +6,17 @@ import numpy as np
 
 
 class HNSWVectorIndex:
-    """Índice HNSW opcional usando hnswlib.
-
-    Es aproximado y pensado para mayor escala que KD-Tree. Requiere `hnswlib`.
-    """
+    """Indice HNSW opcional con control de capacidad fisica y borrados."""
 
     backend_name = "hnsw"
 
     def __init__(self, dimensions: int, max_elements: int = 10_000, ef: int = 64, m: int = 16):
-        if dimensions <= 0:
-            raise ValueError("dimensions debe ser positivo")
+        if dimensions <= 0 or max_elements <= 0:
+            raise ValueError("dimensions y max_elements deben ser positivos")
         try:
             import hnswlib  # type: ignore
         except Exception as exc:  # pragma: no cover - depende del entorno
-            raise ImportError("hnswlib no está instalado. Instale `hnswlib` o use vector_index='kd_tree'.") from exc
+            raise ImportError("hnswlib no esta instalado. Instale `hnswlib` o use vector_index='kd_tree'.") from exc
         self._hnswlib = hnswlib
         self.dimensions = dimensions
         self.max_elements = max_elements
@@ -36,42 +33,62 @@ class HNSWVectorIndex:
         self._capacity = max(max_elements, 1)
 
     def _ensure_capacity(self, extra: int = 1) -> None:
-        needed = len(self._vectors) + extra
-        if needed <= self._capacity:
+        """Cuenta slots fisicos, incluidos los marcados como borrados."""
+        occupied = self._index.get_current_count()
+        if occupied + extra <= self._capacity:
             return
-        new_capacity = max(needed, self._capacity * 2)
-        self._index.resize_index(new_capacity)
-        self._capacity = new_capacity
+        # Los tombstones ocupan slots: reconstruirlos antes de aumentar memoria.
+        if self._deleted:
+            self.rebuild(self._vectors.items())
+            occupied = self._index.get_current_count()
+        if occupied + extra > self._capacity:
+            capacity = max(occupied + extra, self._capacity * 2)
+            self._index.resize_index(capacity)
+            self._capacity = capacity
 
     def insert(self, record_id: int, vector: Iterable[float]) -> None:
         rid = int(record_id)
         values = [float(x) for x in vector]
         if len(values) != self.dimensions:
             raise ValueError(f"vector debe tener dimension {self.dimensions}")
-        if rid in self._vectors and rid not in self._deleted:
-            self.delete(rid)
-        self._vectors[rid] = values
-        self._ensure_capacity()
+        if rid in self._deleted:
+            # La reutilizacion de un ID marcado como borrado no es portable
+            # entre versiones de hnswlib: reconstruir el conjunto vivo.
+            records = dict(self._vectors)
+            records[rid] = values
+            self.rebuild(records.items())
+            return
+        if rid not in self._vectors:
+            self._ensure_capacity()
+        # Una actualizacion de ID existente no consume un nuevo slot.
         self._index.add_items(np.asarray([values], dtype="float32"), np.asarray([rid], dtype="int64"))
-        self._deleted.discard(rid)
+        self._vectors[rid] = values
 
     def delete(self, record_id: int) -> bool:
         rid = int(record_id)
-        existed = self._vectors.pop(rid, None) is not None
-        if existed and rid not in self._deleted:
-            self._index.mark_deleted(rid)
-            self._deleted.add(rid)
-        return existed
+        if rid not in self._vectors:
+            return False
+        self._index.mark_deleted(rid)
+        del self._vectors[rid]
+        self._deleted.add(rid)
+        # La eliminacion logica puede degradar las consultas aun antes de
+        # llenar la capacidad fisica. Compactar por umbral controlado.
+        if len(self._deleted) >= max(32, len(self._vectors) * 2):
+            self.rebuild(self._vectors.items())
+        return True
 
     def rebuild(self, items: Iterable[Tuple[int, Sequence[float]]]) -> None:
-        self._vectors = {int(rid): [float(x) for x in vector] for rid, vector in items}
-        self._deleted = set()
-        self._new_index(max(self.max_elements, len(self._vectors) or 1))
-        if self._vectors:
+        records = {int(rid): [float(x) for x in vector] for rid, vector in items}
+        if any(len(vector) != self.dimensions for vector in records.values()):
+            raise ValueError(f"vector debe tener dimension {self.dimensions}")
+        self._new_index(max(self.max_elements, len(records), 1))
+        if records:
             self._index.add_items(
-                np.asarray(list(self._vectors.values()), dtype="float32"),
-                np.asarray(list(self._vectors.keys()), dtype="int64"),
+                np.asarray(list(records.values()), dtype="float32"),
+                np.asarray(list(records.keys()), dtype="int64"),
             )
+        self._vectors = records
+        self._deleted.clear()
 
     def knn(self, vector: Iterable[float], k: int = 3) -> List[Tuple[int, float]]:
         if k <= 0 or not self._vectors:

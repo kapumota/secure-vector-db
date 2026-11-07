@@ -1,6 +1,19 @@
 from __future__ import annotations
 from dataclasses import dataclass, asdict
+import json
 from typing import Dict, Any, List, Optional
+
+def normalize_metadata(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Normaliza exactamente la representacion JSON persistida por SQLite."""
+    if not isinstance(metadata, dict):
+        raise ValueError("metadata debe ser un objeto JSON")
+    # El primer paso convierte tuplas en listas y claves enteras en cadenas.
+    encoded = json.dumps(metadata, ensure_ascii=False, allow_nan=False)
+    decoded = json.loads(encoded)
+    if not isinstance(decoded, dict):
+        raise ValueError("metadata debe ser un objeto JSON")
+    return decoded
+
 
 @dataclass
 class Record:
@@ -9,8 +22,22 @@ class Record:
     metadata: Dict[str, Any]
     embedding: List[float]
 
-    def canonical(self) -> str:
+    def canonical_legacy(self) -> str:
+        """Formato historico, exclusivamente para verificar migraciones."""
         return f"{self.record_id}|{self.text}|{sorted(self.metadata.items())}|{','.join(f'{x:.6f}' for x in self.embedding)}"
+
+    def canonical(self) -> str:
+        """Formato v2: JSON no ambiguo, claves ordenadas y floats sin redondeo."""
+        payload = {
+            "record_id": self.record_id,
+            "text": self.text,
+            "metadata": normalize_metadata(self.metadata),
+            "embedding_hex": [float(x).hex() for x in self.embedding],
+        }
+        return "svdb-record-v2:" + json.dumps(
+            payload, ensure_ascii=False, sort_keys=True,
+            separators=(",", ":"), allow_nan=False,
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

@@ -9,12 +9,11 @@ from dataclasses import dataclass, field
 from fastapi import Header, HTTPException
 
 from secure_vector_db.api.auth import (
-    DEFAULT_DEV_API_KEY,
+    _compatible_api_keys as configured_api_keys,
     ApiKeyAuthProvider,
     AuthDecision,
     AuthProvider,
     DisabledAuthProvider,
-    parse_api_keys,
 )
 
 READ_SCOPE = "read"
@@ -61,15 +60,8 @@ def scope_allows(granted_scopes: frozenset[str] | set[str], required_scope: str)
 
 
 def _compatible_api_keys() -> list[str]:
-    """Construye lista de claves compatibles con el servidor actual."""
-    raw_keys = os.environ.get("SECURE_VECTOR_DB_API_KEYS", "")
-    single_key = os.environ.get("SECURE_VECTOR_DB_API_KEY", "")
-    keys = parse_api_keys(raw_keys)
-    if single_key.strip():
-        keys.append(single_key.strip())
-    if DEFAULT_DEV_API_KEY not in keys:
-        keys.append(DEFAULT_DEV_API_KEY)
-    return keys
+    """Reutiliza la misma politica cerrada de claves del servidor."""
+    return configured_api_keys()
 
 
 def _scopes_from_env() -> frozenset[str]:
@@ -86,7 +78,10 @@ def build_scoped_auth_provider() -> AuthProvider:
     if backend == "disabled":
         return DisabledAuthProvider()
     if backend == "api_key":
-        return ApiKeyAuthProvider(_compatible_api_keys())
+        keys = _compatible_api_keys()
+        if not keys:
+            raise RuntimeError("No hay API keys configuradas para autenticacion por scopes")
+        return ApiKeyAuthProvider(keys)
     raise ValueError(f"backend de autenticacion no soportado: {backend}")
 
 
@@ -110,7 +105,13 @@ def authenticate_with_scope(
     scopes: frozenset[str] | None = None,
 ) -> AuthenticatedPrincipal:
     """Autentica y valida scope requerido."""
-    auth_provider = build_scoped_auth_provider() if provider is None else provider
+    if provider is None:
+        try:
+            auth_provider = build_scoped_auth_provider()
+        except RuntimeError as exc:
+            raise HTTPException(status_code=401, detail="API key no configurada") from exc
+    else:
+        auth_provider = provider
     decision = auth_provider.authenticate(headers)
 
     if not decision.allowed:

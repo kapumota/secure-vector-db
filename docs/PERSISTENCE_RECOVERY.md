@@ -88,3 +88,11 @@ La fase agrega pruebas para:
 Esta fase no implementa backups, migraciones versionadas ni reparacion automatica destructiva.
 
 La recuperacion es conservadora: diagnostica inconsistencias y mantiene busqueda exacta por B+ Tree cuando el learned index no puede activarse.
+
+#### Correccion posterior a la auditoria (formato v2)
+
+La raiz principal usa ahora representacion canonica JSON versionada y prefijos de dominio para hojas y nodos. La escritura de registros y raiz principal se confirma dentro de una unica transaccion SQLite.
+
+Si una base antigua presenta raiz persistida no coincidente, el sistema indica `needs_recovery` y rechaza nuevas escrituras. No reconstituye automaticamente una raiz de confianza. La migracion de bases legacy que contienen un snapshot Merkle auxiliar requiere un procedimiento separado y supervisado con backup.
+
+Cuando el Merkle de escrituras reales esta habilitado en una base independiente, el campo `merkle_pending=1` indica que una escritura principal pudo confirmarse sin sincronizacion de la evidencia auxiliar. No reabrir para escrituras hasta una reconciliacion controlada. Esta marca **no proporciona atomicidad entre archivos SQLite**.

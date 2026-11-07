@@ -13,6 +13,8 @@ secure-vector-db = "secure_vector_db.cli:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+testpaths = ["tests"]
+norecursedirs = [".git", ".secure_db", "build", "dist", "experiments/_local"]
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
