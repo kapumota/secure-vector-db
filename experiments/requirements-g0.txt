@@ -1,0 +1,5 @@
+# Dependencias adicionales para reproducir G0.
+# FAISS coincide con la version del expediente original.
+# NumPy se resuelve segun la version de Python instalada.
+
+faiss-cpu==1.15.1
