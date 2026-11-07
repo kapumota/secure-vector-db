@@ -17,12 +17,12 @@ from secure_vector_db.indexes.learned_index_health import evaluate_learned_index
 from secure_vector_db.indexes.explain_plan import build_range_explain_plan, build_record_explain_plan
 from secure_vector_db.indexes.factory import create_vector_index
 from secure_vector_db.ml.embeddings import create_embedding_model
-from secure_vector_db.storage.record_store import Record, RecordStore
+from secure_vector_db.storage.record_store import Record, RecordStore, normalize_metadata
 from secure_vector_db.storage.learned_index_store import LearnedIndexStore
 from secure_vector_db.storage.sqlite_store import SQLiteRecordStore
 
 class SimpleMerkle:
-    """Merkle Tree mínimo para raíz verificable usando SHA-256."""
+    """Raiz con separacion de dominios para los registros canonicos v2."""
 
     @staticmethod
     def _h(data: bytes) -> bytes:
@@ -30,6 +30,18 @@ class SimpleMerkle:
 
     @classmethod
     def root_hex(cls, items: List[str]) -> str:
+        if not items:
+            return ""
+        level = [cls._h(b"leaf:" + x.encode("utf-8")) for x in items]
+        while len(level) > 1:
+            if len(level) % 2:
+                level.append(level[-1])
+            level = [cls._h(b"node:" + level[i] + level[i + 1]) for i in range(0, len(level), 2)]
+        return level[0].hex()
+
+    @classmethod
+    def root_hex_legacy(cls, items: List[str]) -> str:
+        """Hash historico, solo para validar datos anteriores a v2."""
         if not items:
             return ""
         level = [cls._h(x.encode("utf-8")) for x in items]
@@ -80,6 +92,7 @@ class SecureVectorDB:
         self._learned_store = LearnedIndexStore(self._durable) if self._durable else None
         self.store = RecordStore()
         self._root_hash = ""
+        self._integrity_compromised = False
         self._merkle_write_integrity: MerkleWriteIntegrator | None = build_merkle_write_integrator_from_env(storage_path)
         if self._durable:
             self._load_from_durable()
@@ -113,25 +126,124 @@ class SecureVectorDB:
         )
 
     def _load_from_durable(self) -> None:
+        """Recupera datos sin sobrescribir evidencia Merkle discordante."""
         assert self._durable is not None
-        for record in self._durable.all():
+        records = self._durable.all()
+        for record in records:
             self.store.insert(record)
         self._rebuild_indexes()
-        self._sync_merkle_write_integrity("load")
         saved_root = self._durable.get_meta("root_hash", "")
+        version = self._durable.get_meta("root_format_version", "1")
         computed = self.compute_root_hash()
-        self._root_hash = saved_root if saved_root or len(self.store) else computed
+        self._root_hash = saved_root
+        if self._durable.get_meta("merkle_pending", "0") != "0":
+            self._integrity_compromised = True
+        elif version == "2":
+            self._integrity_compromised = saved_root != computed
+        elif version == "1":
+            legacy_root = SimpleMerkle.root_hex_legacy(
+                [record.canonical_legacy() for record in records]
+            )
+            if legacy_root != saved_root:
+                self._integrity_compromised = True
+            elif self._merkle_write_integrity and self._merkle_write_integrity.store.has_snapshot():
+                # La migracion de dos bases separadas requiere intervencion
+                # explicita. No destruir la evidencia autentificada antigua.
+                self._integrity_compromised = True
+            else:
+                # Migracion automatica solo si la raiz historica concuerda
+                # y no hay un snapshot Merkle separado que deba migrarse.
+                self._durable.set_meta_batch({
+                    "root_hash": computed,
+                    "root_format_version": "2",
+                    "merkle_pending": "0",
+                })
+                self._root_hash = computed
+        else:
+            self._integrity_compromised = True
 
-    def _sync_root(self) -> None:
-        self._root_hash = self.compute_root_hash()
-        if self._durable:
-            self._durable.set_meta("root_hash", self._root_hash)
-            self._durable.set_meta("embedding_dim", str(self.embedding_dim))
-            self._durable.set_meta("bplus_order", str(self.bplus_order))
-            self._durable.set_meta("vector_index", self.vector_index.backend_name)
-            self._durable.set_meta("embedding_model", self.embedder.name)
-            if self.embedding_model_name:
-                self._durable.set_meta("embedding_model_name", self.embedding_model_name)
+        if self._merkle_write_integrity is not None and not self._integrity_compromised:
+            try:
+                self._merkle_write_integrity.initialize_or_verify_records(records)
+            except (RuntimeError, ValueError):
+                self._integrity_compromised = True
+
+    def _root_metadata(self) -> dict[str, str]:
+        """Metadatos persistidos junto con el registro y su raiz."""
+        result = {
+            "embedding_dim": str(self.embedding_dim),
+            "bplus_order": str(self.bplus_order),
+            "vector_index": self.vector_index.backend_name,
+            "embedding_model": self.embedder.name,
+        }
+        if self.embedding_model_name:
+            result["embedding_model_name"] = self.embedding_model_name
+        return result
+
+    def _assert_writable(self) -> None:
+        """No permite escrituras si existe evidencia de integridad pendiente."""
+        if self._integrity_compromised or not self.verify_dataset():
+            raise IntegrityError(
+                "Estado de integridad inconsistente; no se admiten escrituras"
+            )
+        if self._merkle_write_integrity is not None:
+            if not self._merkle_write_integrity.matches_records(self.store.all()):
+                self._integrity_compromised = True
+                raise IntegrityError(
+                    "Merkle persistente divergente; se bloquean las escrituras"
+                )
+
+    def _write_change(self, *, record: Record | None = None, delete_id: int | None = None) -> None:
+        """Actualiza indice, SQLite y evidencia con parada segura ante fallos."""
+        old_root = self._root_hash
+        old_records = list(self.store.all())
+        try:
+            if record is not None:
+                self.store.insert(record)
+                self._index_record(record)
+            elif delete_id is not None:
+                self.store.delete(delete_id)
+                self._remove_from_indexes(delete_id)
+            else:
+                raise ValueError("Falta la operacion")
+            new_root = self.compute_root_hash()
+            if self._durable:
+                self._durable.commit_record_and_root(
+                    record=record,
+                    delete_id=delete_id,
+                    root_hash=new_root,
+                    root_metadata=self._root_metadata(),
+                    merkle_pending=self._merkle_write_integrity is not None,
+                )
+            self._root_hash = new_root
+        except Exception:
+            # Una transaccion SQLite fallida revierte los registros durables.
+            # Los indices auxiliares se reconstruyen solo por esta via de error.
+            self.store = RecordStore()
+            for old_record in old_records:
+                self.store.insert(old_record)
+            self._rebuild_indexes()
+            self._root_hash = old_root
+            raise
+
+        if self._merkle_write_integrity is not None:
+            try:
+                if record is not None:
+                    self._apply_merkle_write_insert(record)
+                else:
+                    assert delete_id is not None
+                    self._apply_merkle_write_delete(delete_id)
+                if self._durable:
+                    self._durable.set_meta("merkle_pending", "0")
+            except Exception as exc:
+                # SQLite y una base Merkle aparte no comparten transaccion.
+                # Mantener el marcador de recuperacion y rechazar escrituras.
+                self._integrity_compromised = True
+                raise IntegrityError(
+                    "SQLite se confirmo, pero Merkle no; se requiere reconciliacion controlada"
+                ) from exc
+
+        self._disable_learned_index("datos modificados despues del entrenamiento")
 
     def _rebuild_indexes(self) -> None:
         """Reconstruye todos los índices desde el store.
@@ -171,38 +283,33 @@ class SecureVectorDB:
             self._validate_record_input(record_id, text)
             if metadata is not None and not isinstance(metadata, dict):
                 raise ValidationError("metadata debe ser un objeto/diccionario")
-            embedding = self.embedder.encode(text)
-            record = Record(record_id=record_id, text=text, metadata=metadata or {}, embedding=embedding)
-            if self._durable:
-                self._durable.upsert(record)
-            self.store.insert(record)
-            self._index_record(record)
-            self._disable_learned_index("datos modificados despues del entrenamiento")
-            self._sync_root()
-            self._apply_merkle_write_insert(record)
+            self._assert_writable()
+            try:
+                normalized_metadata = normalize_metadata(metadata or {})
+            except (TypeError, ValueError) as exc:
+                raise ValidationError(f"metadata no es JSON valido: {exc}") from exc
+            record = Record(
+                record_id=record_id, text=text,
+                metadata=normalized_metadata,
+                embedding=self.embedder.encode(text),
+            )
+            self._write_change(record=record)
             return record
 
     def delete(self, record_id: int) -> bool:
         with self._lock:
             if not isinstance(record_id, int) or record_id < 0:
                 raise ValidationError("record_id debe ser un entero no negativo")
-            deleted = self.store.delete(record_id)
-            if self._durable:
-                deleted = self._durable.delete(record_id) or deleted
-            if deleted:
-                self._remove_from_indexes(record_id)
-                self._disable_learned_index("datos modificados despues del entrenamiento")
-                self._sync_root()
-                self._apply_merkle_write_delete(record_id)
-            return deleted
+            self._assert_writable()
+            if self.store.get(record_id) is None:
+                return False
+            self._write_change(delete_id=record_id)
+            return True
 
     def _sync_merkle_write_integrity(self, operation: str = "rebuild") -> None:
-        """Sincroniza Merkle persistente desde el store real."""
+        """Valida el Merkle persistente sin reemplazar evidencia antigua."""
         if self._merkle_write_integrity is not None:
-            self._merkle_write_integrity.rebuild_from_records(
-                self.store.all(),
-                operation=operation,
-            )
+            self._merkle_write_integrity.initialize_or_verify_records(self.store.all())
 
     def _apply_merkle_write_insert(self, record: Record) -> None:
         """Aplica insert real al Merkle persistente si esta activo."""
@@ -301,9 +408,10 @@ class SecureVectorDB:
             if self._durable:
                 persisted_root = self._durable.get_meta("root_hash", "")
 
-            root_matches = True
+            root_matches = not self._integrity_compromised
             if durable_enabled:
-                root_matches = persisted_root == computed_root
+                root_matches = root_matches and persisted_root == computed_root
+                root_matches = root_matches and self._durable.get_meta("merkle_pending", "0") == "0"
 
             if not durable_enabled:
                 status = "memory_only"
@@ -430,6 +538,13 @@ class SecureVectorDB:
 
     def verify_dataset(self) -> bool:
         with self._lock:
+            if self._integrity_compromised:
+                return False
+            if self._durable:
+                if self._durable.get_meta("merkle_pending", "0") != "0":
+                    return False
+                if self._durable.get_meta("root_hash", "") != self._root_hash:
+                    return False
             return self._root_hash == self.compute_root_hash()
 
     def assert_integrity(self) -> None:
@@ -444,10 +559,12 @@ class SecureVectorDB:
         return self._merkle_write_integrity.root_hex
 
     def verify_merkle_integrity(self) -> bool:
-        """Verifica Merkle persistente de escrituras reales."""
+        """Contrasta registros, hojas y raiz Merkle persistida."""
+        if not self.verify_dataset():
+            return False
         if self._merkle_write_integrity is None:
             return True
-        return self._merkle_write_integrity.verify_integrity()
+        return self._merkle_write_integrity.matches_records(self.store.all())
 
     def tamper_text_for_demo(self, record_id: int, new_text: str) -> None:
         rec = self.get_or_raise(record_id)
@@ -459,6 +576,7 @@ class SecureVectorDB:
             "embedding_dim": self.embedding_dim,
             "bplus_order": self.bplus_order,
             "root_hash": self._root_hash,
+            "canonical_version": 2,
             "records": self.store.to_list(),
             "embedding_note": "hash model is deterministic/offline; sentence-transformers produces real semantic embeddings when configured",
             "embedding_model": self.embedder.name,
@@ -474,7 +592,14 @@ class SecureVectorDB:
         for item in payload.get("records", []):
             db.store.insert(Record.from_dict(item))
         db._rebuild_indexes()
-        db._root_hash = str(payload.get("root_hash", db.compute_root_hash()))
+        saved_root = str(payload.get("root_hash", db.compute_root_hash()))
+        if payload.get("canonical_version", 1) == 1:
+            legacy = SimpleMerkle.root_hex_legacy([r.canonical_legacy() for r in db.store.all()])
+            if saved_root == legacy:
+                saved_root = db.compute_root_hash()
+            else:
+                db._integrity_compromised = True
+        db._root_hash = saved_root
         return db
 
     def close(self) -> None:

@@ -148,7 +148,7 @@ def test_api_documents_auth_and_errors(tmp_path: Path, monkeypatch, enable_test_
 
         health = client.get("/health")
         assert health.status_code == 200
-        assert health.json()["storage"].endswith("api-test.sqlite")
+        assert health.json() == {"status": "ok"}
 
         unauth = client.get("/range", params={"start": 1, "end": 2})
         assert unauth.status_code == 401

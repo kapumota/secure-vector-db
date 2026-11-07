@@ -79,3 +79,11 @@ auditoria JSONL registra eventos de escritura
 Fase 16.0 - API contract freeze y versionado
 Fase 16.1 - Coverage uplift para release candidate
 ```
+
+#### Correccion posterior a la auditoria
+
+La apertura ya no reconstruye indiscriminadamente la evidencia Merkle auxiliar. Contrasta los hashes persistidos de hojas con los registros SQLite y conserva una discrepancia como fallo de integridad. Si no hay snapshot anterior, se permite un bootstrap inicial desde registros validados.
+
+Las sustituciones de una hoja existente actualizan solo la hoja y su ruta a la raiz en la base auxiliar. Las inserciones y borrados siguen sujetos al costo de reconstruccion de su topologia.
+
+La transaccion principal SQLite y el almacenamiento auxiliar Merkle siguen siendo archivos diferentes. El marcador `merkle_pending` sirve para diagnosticar interrupciones y bloquear escrituras, no garantiza un commit atomico entre ambas bases. Para protegerse frente a operadores maliciosos que falsifiquen ambos archivos se necesita un ancla de confianza externa.

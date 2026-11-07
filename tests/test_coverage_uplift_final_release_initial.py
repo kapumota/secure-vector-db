@@ -78,8 +78,8 @@ def test_record_store_replace_and_canonical_metadata_ordering() -> None:
     assert len(store) == 1
     assert store.get(1).text == "texto reemplazado"  # type: ignore[union-attr]
     canonical = second.canonical()
-    assert "(\'a\', 1)" in canonical
-    assert "(\'b\', 2)" in canonical
+    assert '"a":1' in canonical
+    assert '"b":2' in canonical
 
 
 def test_hash_embedding_similarity_and_factory_paths() -> None:

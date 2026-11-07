@@ -7,7 +7,7 @@ from threading import RLock
 from typing import Optional
 
 from secure_vector_db.errors import StorageError
-from secure_vector_db.storage.record_store import Record
+from secure_vector_db.storage.record_store import Record, normalize_metadata
 
 SCHEMA_VERSION = 1
 
@@ -68,12 +68,75 @@ class SQLiteRecordStore:
                     (
                         record.record_id,
                         record.text,
-                        json.dumps(record.metadata, ensure_ascii=False, sort_keys=True),
+                        json.dumps(normalize_metadata(record.metadata), ensure_ascii=False, sort_keys=True, allow_nan=False),
                         json.dumps(record.embedding, ensure_ascii=False),
                     ),
                 )
         except sqlite3.Error as exc:
             raise StorageError(f"No se pudo guardar record_id={record.record_id}: {exc}") from exc
+
+    def commit_record_and_root(
+        self,
+        *,
+        record: Record | None = None,
+        delete_id: int | None = None,
+        root_hash: str,
+        root_metadata: dict[str, str],
+        merkle_pending: bool = False,
+    ) -> bool:
+        """Confirma registro y raiz principal en una transaccion SQLite."""
+        if (record is None) == (delete_id is None):
+            raise ValueError("se requiere exactamente una operacion")
+        try:
+            with self._lock, self.conn:
+                if record is not None:
+                    self.conn.execute(
+                        """
+                        INSERT INTO records(record_id, text, metadata_json, embedding_json, updated_at)
+                        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                        ON CONFLICT(record_id) DO UPDATE SET
+                            text=excluded.text,
+                            metadata_json=excluded.metadata_json,
+                            embedding_json=excluded.embedding_json,
+                            updated_at=CURRENT_TIMESTAMP
+                        """,
+                        (
+                            record.record_id,
+                            record.text,
+                            json.dumps(normalize_metadata(record.metadata), ensure_ascii=False, sort_keys=True, allow_nan=False),
+                            json.dumps(record.embedding, ensure_ascii=False, allow_nan=False),
+                        ),
+                    )
+                    changed = True
+                else:
+                    cursor = self.conn.execute("DELETE FROM records WHERE record_id=?", (delete_id,))
+                    changed = cursor.rowcount > 0
+                metadata = {
+                    **root_metadata,
+                    "root_hash": root_hash,
+                    "root_format_version": "2",
+                    "merkle_pending": "1" if merkle_pending else "0",
+                }
+                self.conn.executemany(
+                    "INSERT INTO kv_meta(key, value) VALUES (?, ?) "
+                    "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                    list(metadata.items()),
+                )
+            return changed
+        except (sqlite3.Error, ValueError, TypeError) as exc:
+            raise StorageError(f"No se pudo confirmar escritura y raiz: {exc}") from exc
+
+    def set_meta_batch(self, metadata: dict[str, str]) -> None:
+        """Actualiza metadatos relacionados en una sola transaccion."""
+        try:
+            with self._lock, self.conn:
+                self.conn.executemany(
+                    "INSERT INTO kv_meta(key, value) VALUES (?, ?) "
+                    "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                    list(metadata.items()),
+                )
+        except sqlite3.Error as exc:
+            raise StorageError(f"No se pudieron guardar metadatos: {exc}") from exc
 
     def delete(self, record_id: int) -> bool:
         try:

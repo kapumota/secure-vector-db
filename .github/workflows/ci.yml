@@ -37,3 +37,29 @@ jobs:
         with:
           name: benchmark-results-${{ matrix.python-version }}
           path: benchmark-results.json
+
+  optional-ann:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install optional ANN backends
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt -r requirements-ann.txt
+      - name: Test HNSW and FAISS implementations
+        run: |
+          python -m pytest -q tests/test_mantenimiento_integral.py
+          python - <<'PYTHON'
+          import faiss
+          import hnswlib
+          from secure_vector_db.indexes.faiss_vector_index import FaissVectorIndex
+          from secure_vector_db.indexes.hnsw_vector_index import HNSWVectorIndex
+          for index in (FaissVectorIndex(2), HNSWVectorIndex(2, max_elements=4)):
+              index.insert(1, [0.0, 0.0])
+              assert index.knn([0.0, 0.0], 1)[0][0] == 1
+          PYTHON

@@ -115,8 +115,9 @@ def handle_app_error(_, exc: SecureVectorDBError):
 
 
 @app.get("/health", tags=["system"])
-def health(db: SecureVectorDB = Depends(get_db), db_path: str = Depends(get_db_path)):
-    return {"status": "ok", "records": len(db.store), "root_hash": db.root_hash, "storage": db_path, "vector_index": db.vector_index.backend_name, "embedding_model": db.embedder.name, "embedding_dim": db.embedding_dim, "ordered_index": db.ordered_index_stats()}
+def health():
+    """Healthcheck publico: no revela rutas, hashes ni configuracion interna."""
+    return {"status": "ok"}
 
 
 @app.post(

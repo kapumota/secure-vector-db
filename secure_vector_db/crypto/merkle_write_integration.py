@@ -7,7 +7,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Iterable
 
-from secure_vector_db.crypto.incremental_merkle import MerkleUpdateResult
+from secure_vector_db.crypto.incremental_merkle import MerkleUpdateResult, hash_leaf
 from secure_vector_db.crypto.merkle_audit import JsonlMerkleAuditLog, append_merkle_audit_event
 from secure_vector_db.crypto.merkle_persistence import MerklePersistenceStats, SQLiteMerkleNodeStore
 from secure_vector_db.storage.record_store import Record
@@ -62,7 +62,17 @@ class MerkleWriteIntegrator:
     def apply_insert(self, record: Record) -> MerkleWriteResult:
         """Aplica insert o reemplazo real a Merkle."""
         update = self.tree.update_leaf(record.record_id, record.canonical())
-        stats = self.store.save_tree(self.tree)
+        if update.mode == "path":
+            stats = self.store.save_existing_path(self.tree, record.record_id)
+        elif update.mode == "noop":
+            stats = MerklePersistenceStats(
+                leaves=self.tree.size,
+                nodes=self.store.count_nodes(),
+                root_hex=self.tree.root_hex,
+                recovered_from="noop",
+            )
+        else:
+            stats = self.store.save_tree(self.tree)
         return self._persist_result(operation="insert", update=update, stats=stats)
 
     def apply_delete(self, record_id: int) -> MerkleWriteResult:
@@ -72,8 +82,26 @@ class MerkleWriteIntegrator:
         return self._persist_result(operation="delete", update=update, stats=stats)
 
     def verify_integrity(self) -> bool:
-        """Verifica Merkle persistente contra hojas persistidas."""
+        """Verifica la consistencia interna del snapshot persistido."""
         return self.store.verify_integrity() and self.tree.verify_against_full_rebuild()
+
+    def matches_records(self, records: Iterable[Record], *, legacy: bool = False) -> bool:
+        """Contrasta cada hoja persistida con registros reales, sin reparar."""
+        expected = {
+            record.record_id: hash_leaf(
+                record.canonical_legacy() if legacy else record.canonical()
+            ).hex()
+            for record in records
+        }
+        return self.verify_integrity() and expected == self.store.load_leaf_digests()
+
+    def initialize_or_verify_records(self, records: Iterable[Record]) -> None:
+        """Inicializa una sola vez; nunca sobreescribe evidencias divergentes."""
+        record_list = list(records)
+        if not self.store.has_snapshot():
+            self.rebuild_from_records(record_list, operation="bootstrap")
+        elif not self.matches_records(record_list):
+            raise RuntimeError("Merkle persistente no coincide con los registros SQLite")
 
     def _persist_result(
         self,
