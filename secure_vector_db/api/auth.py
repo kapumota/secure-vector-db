@@ -160,20 +160,31 @@ DEFAULT_DEV_API_KEY = "secure-vector-db-dev-key"
 
 
 def _compatible_api_keys() -> list[str]:
-    """Construye lista de API keys compatibles con el servidor actual."""
-    raw_keys = os.environ.get("SECURE_VECTOR_DB_API_KEYS", "")
-    single_key = os.environ.get("SECURE_VECTOR_DB_API_KEY", "")
-    keys = parse_api_keys(raw_keys)
-    if single_key.strip():
-        keys.append(single_key.strip())
-    if DEFAULT_DEV_API_KEY not in keys:
+    """Obtiene claves configuradas sin introducir credenciales implícitas."""
+    keys = parse_api_keys(os.environ.get("SECURE_VECTOR_DB_API_KEYS", ""))
+    keys.extend(parse_api_keys(os.environ.get("SECURE_VECTOR_DB_API_KEY", "")))
+
+    # La clave de desarrollo requiere autorización explícita y ausencia de otras claves.
+    allow_dev = os.environ.get(
+        "SECURE_VECTOR_DB_ALLOW_DEV_API_KEY", ""
+    ).strip().lower() in {"1", "true", "yes", "si"}
+
+    if not keys and allow_dev:
         keys.append(DEFAULT_DEV_API_KEY)
-    return keys
+
+    return list(dict.fromkeys(keys))
 
 
 def require_api_key(x_api_key: str | None = Header(default=None, alias="X-API-Key")) -> str:
     """Dependencia FastAPI compatible para validar X-API-Key."""
-    provider = ApiKeyAuthProvider(_compatible_api_keys())
+    keys = _compatible_api_keys()
+    if not keys:
+        raise HTTPException(
+            status_code=401,
+            detail="API key no configurada",
+        )
+
+    provider = ApiKeyAuthProvider(keys)
     decision = provider.authenticate({"X-API-Key": x_api_key or ""})
 
     if not decision.allowed:

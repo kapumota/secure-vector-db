@@ -11,7 +11,14 @@ def test_default_dev_api_key_is_available_for_existing_tests() -> None:
     assert DEFAULT_DEV_API_KEY
 
 
-def test_require_api_key_accepts_default_dev_key() -> None:
+def test_require_api_key_accepts_default_dev_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """La clave de desarrollo requiere habilitacion explicita."""
+    monkeypatch.delenv("SECURE_VECTOR_DB_API_KEY", raising=False)
+    monkeypatch.delenv("SECURE_VECTOR_DB_API_KEYS", raising=False)
+    monkeypatch.setenv("SECURE_VECTOR_DB_ALLOW_DEV_API_KEY", "true")
+
     principal = require_api_key(DEFAULT_DEV_API_KEY)
 
     assert principal == "api-key-client"

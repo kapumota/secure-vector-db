@@ -43,7 +43,7 @@ def test_explain_search_by_id_reports_fallback_path() -> None:
     assert plan["strategy"] in {"fallback_bplus_tree", "not_found"}
 
 
-def test_ordered_explain_endpoint(tmp_path, monkeypatch) -> None:
+def test_ordered_explain_endpoint(tmp_path, monkeypatch, enable_test_api_key) -> None:
     monkeypatch.setenv("SECURE_VECTOR_DB_PATH", str(tmp_path / "api-explain.sqlite"))
     monkeypatch.setenv("SECURE_VECTOR_DB_LEARNED_INDEX", "true")
     monkeypatch.setenv("SECURE_VECTOR_DB_LEARNED_MAX_ERROR", "4")
