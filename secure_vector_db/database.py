@@ -86,7 +86,7 @@ class SecureVectorDB:
         self.embedding_dim = self.embedder.dim
         self.id_index = BPlusTree[int, int](bplus_order)
         self.ordered_index = OrderedIndexRouter(self.id_index)
-        self.vector_index = create_vector_index(embedding_dim, vector_index)
+        self.vector_index = create_vector_index(self.embedding_dim, vector_index)
         self._lock = RLock()
         self._durable: SQLiteRecordStore | None = SQLiteRecordStore(storage_path) if storage_path else None
         self._learned_index_name = "record_id"
@@ -131,7 +131,18 @@ class SecureVectorDB:
     def _load_from_durable(self) -> None:
         """Recupera datos sin sobrescribir evidencia Merkle discordante."""
         assert self._durable is not None
+        # Rechazar configuraciones incompatibles antes de reconstruir indices.
+        for key, expected in self._root_metadata().items():
+            if key not in {"embedding_dim", "embedding_model", "embedding_model_name"}:
+                continue
+            saved = self._durable.get_meta(key, "")
+            if saved and saved != expected:
+                self._durable.close()
+                raise ValidationError(f"Configuracion persistida incompatible: {key}")
         records = self._durable.all()
+        if any(len(record.embedding) != self.embedding_dim for record in records):
+            self._durable.close()
+            raise ValidationError("Dimension persistida incompatible")
         for record in records:
             self.store.insert(record)
         self._rebuild_indexes()
@@ -317,8 +328,8 @@ class SecureVectorDB:
 
     @staticmethod
     def _validate_record_input(record_id: int, text: str) -> None:
-        if not isinstance(record_id, int) or record_id < 0:
-            raise ValidationError("record_id debe ser un entero no negativo")
+        if type(record_id) is not int or not 0 <= record_id <= 2**63 - 1:
+            raise ValidationError("record_id debe ser un entero entre 0 y 2**63 - 1")
         if not isinstance(text, str) or not text.strip():
             raise ValidationError("text no puede estar vacío")
 
@@ -342,8 +353,8 @@ class SecureVectorDB:
 
     def delete(self, record_id: int) -> bool:
         with self._lock:
-            if not isinstance(record_id, int) or record_id < 0:
-                raise ValidationError("record_id debe ser un entero no negativo")
+            if type(record_id) is not int or not 0 <= record_id <= 2**63 - 1:
+                raise ValidationError("record_id debe ser un entero entre 0 y 2**63 - 1")
             self._assert_writable()
             if self.store.get(record_id) is None:
                 return False
@@ -367,8 +378,8 @@ class SecureVectorDB:
 
     def search_by_id(self, record_id: int) -> Optional[Record]:
         with self._lock:
-            if not isinstance(record_id, int) or record_id < 0:
-                raise ValidationError("record_id debe ser un entero no negativo")
+            if type(record_id) is not int or not 0 <= record_id <= 2**63 - 1:
+                raise ValidationError("record_id debe ser un entero entre 0 y 2**63 - 1")
             found_id = self.ordered_index.find(record_id)
             if found_id is None:
                 return None
@@ -397,8 +408,8 @@ class SecureVectorDB:
     def explain_search_by_id(self, record_id: int) -> Dict[str, Any]:
         """Devuelve un explain plan para la busqueda por ID."""
         with self._lock:
-            if not isinstance(record_id, int) or record_id < 0:
-                raise ValidationError("record_id debe ser un entero no negativo")
+            if type(record_id) is not int or not 0 <= record_id <= 2**63 - 1:
+                raise ValidationError("record_id debe ser un entero entre 0 y 2**63 - 1")
             return self.ordered_index.explain(record_id)
 
     def _ordered_record_ids(self) -> list[int]:

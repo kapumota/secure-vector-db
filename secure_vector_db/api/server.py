@@ -86,7 +86,7 @@ app = FastAPI(
 
 
 class InsertRequest(BaseModel):
-    record_id: int = Field(..., ge=0, description="ID entero no negativo")
+    record_id: int = Field(..., ge=0, le=2**63 - 1, strict=True, description="ID entero no negativo de 64 bits")
     text: str = Field(..., min_length=1, description="Texto a indexar")
     metadata: Optional[Dict[str, Any]] = Field(default=None, description="Metadatos JSON opcionales")
 

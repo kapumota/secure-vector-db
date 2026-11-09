@@ -60,7 +60,10 @@ class KDTreeVectorIndex:
         return existed
 
     def rebuild(self, items: Iterable[Tuple[int, Sequence[float]]]) -> None:
-        self._points = {int(rid): [float(x) for x in vector] for rid, vector in items}
+        points = {int(rid): [float(x) for x in vector] for rid, vector in items}
+        if any(len(vector) != self.dimensions for vector in points.values()):
+            raise ValueError(f"vector debe tener dimension {self.dimensions}")
+        self._points = points
         self._root = self._build([_Point(rid, vector) for rid, vector in self._points.items()], depth=0)
         self._dirty = False
 
