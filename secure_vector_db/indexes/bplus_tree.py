@@ -105,7 +105,7 @@ class BPlusTreeNode(Generic[K, V]):
         Utiliza mid = (order+1)//2 para equilibrar.
         """
         child = self.children[idx]
-        mid = (self.order + 1) // 2  # t = ceil(order/2)
+        mid = (self.order + 1) // 2 if child.is_leaf else self.order // 2
         if child.is_leaf:
             nuevo = BPlusTreeNode[K, V](self.order, True)
             nuevo.keys = child.keys[mid:]

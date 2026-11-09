@@ -6,6 +6,7 @@ import base64
 import hashlib
 import hmac
 import json
+import math
 import os
 import time
 from typing import Any, Mapping
@@ -57,7 +58,7 @@ def _json_from_segment(segment: str) -> dict[str, Any]:
     """Convierte un segmento JWT en diccionario JSON."""
     try:
         value = json.loads(_b64url_decode(segment).decode("utf-8"))
-    except json.JSONDecodeError as exc:
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise JwtValidationError("segmento JSON invalido") from exc
     if not isinstance(value, dict):
         raise JwtValidationError("segmento JSON debe ser objeto")
@@ -101,10 +102,22 @@ def decode_hs256_jwt(
 
     signing_input = f"{header_segment}.{payload_segment}"
     expected_signature = _sign_hs256(signing_input, secret)
-    if not hmac.compare_digest(expected_signature, signature_segment):
+    if not signature_segment.isascii() or not hmac.compare_digest(expected_signature, signature_segment):
         raise JwtValidationError("firma JWT invalida")
 
     current = time.time() if now is None else now
+
+    for claim in ("exp", "nbf"):
+        value = payload.get(claim)
+        if value is not None:
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise JwtValidationError(f"claim {claim} debe ser numerico")
+            try:
+                finite = math.isfinite(value)
+            except (OverflowError, ValueError):
+                finite = False
+            if not finite:
+                raise JwtValidationError(f"claim {claim} debe ser finito")
 
     exp = payload.get("exp")
     if exp is not None and current > float(exp) + leeway_seconds:
