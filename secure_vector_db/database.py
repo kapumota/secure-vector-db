@@ -7,6 +7,7 @@ from threading import RLock
 from typing import Any, Dict, List, Optional, Tuple
 
 from secure_vector_db.errors import IntegrityError, RecordNotFoundError, ValidationError
+from secure_vector_db.crypto.incremental_merkle import IncrementalMerkleTree
 from secure_vector_db.crypto.merkle_write_integration import (
     MerkleWriteIntegrator,
     build_merkle_write_integrator_from_env,
@@ -92,6 +93,8 @@ class SecureVectorDB:
         self._learned_store = LearnedIndexStore(self._durable) if self._durable else None
         self.store = RecordStore()
         self._root_hash = ""
+        # Cache Merkle principal, no sustituye las verificaciones completas.
+        self._primary_merkle = IncrementalMerkleTree()
         self._integrity_compromised = False
         self._merkle_write_integrity: MerkleWriteIntegrator | None = build_merkle_write_integrator_from_env(storage_path)
         if self._durable:
@@ -132,6 +135,9 @@ class SecureVectorDB:
         for record in records:
             self.store.insert(record)
         self._rebuild_indexes()
+        self._primary_merkle.rebuild(
+            (record.record_id, record.canonical()) for record in records
+        )
         saved_root = self._durable.get_meta("root_hash", "")
         version = self._durable.get_meta("root_format_version", "1")
         computed = self.compute_root_hash()
@@ -206,7 +212,16 @@ class SecureVectorDB:
                 self._remove_from_indexes(delete_id)
             else:
                 raise ValueError("Falta la operacion")
-            new_root = self.compute_root_hash()
+            # La validacion completa ya se realizo en _assert_writable().
+            # Actualizar el cache evita la segunda recomputacion global.
+            # Inserciones y borrados aun pueden reconstruir la topologia.
+            if record is not None:
+                new_root = self._primary_merkle.update_leaf(
+                    record.record_id, record.canonical()
+                ).root_hex
+            else:
+                assert delete_id is not None
+                new_root = self._primary_merkle.delete_leaf(delete_id).root_hex
             if self._durable:
                 self._durable.commit_record_and_root(
                     record=record,
@@ -223,6 +238,11 @@ class SecureVectorDB:
             for old_record in old_records:
                 self.store.insert(old_record)
             self._rebuild_indexes()
+            # Restaurar tambien el cache tras una escritura durable fallida.
+            self._primary_merkle.rebuild(
+                (old_record.record_id, old_record.canonical())
+                for old_record in old_records
+            )
             self._root_hash = old_root
             raise
 
@@ -592,6 +612,9 @@ class SecureVectorDB:
         for item in payload.get("records", []):
             db.store.insert(Record.from_dict(item))
         db._rebuild_indexes()
+        db._primary_merkle.rebuild(
+            (record.record_id, record.canonical()) for record in db.store.all()
+        )
         saved_root = str(payload.get("root_hash", db.compute_root_hash()))
         if payload.get("canonical_version", 1) == 1:
             legacy = SimpleMerkle.root_hex_legacy([r.canonical_legacy() for r in db.store.all()])

@@ -1,5 +1,5 @@
 import pytest
-from tools.controlled.pilot_runner import run
+from tools.controlled.pilot_runner import BASE_COMMIT, run
 
 def test_absent_v3_is_skip(tmp_path):
     result = run({'mode': 'exploratory', 'variants': [{'name': 'V3', 'path': None}]}, tmp_path / 'pilot')
@@ -15,7 +15,13 @@ def test_runner_real_checkout(tmp_path):
     from pathlib import Path
     import subprocess
     root = Path(__file__).resolve().parents[1]
-    sha = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
+    # El perfil negativo corresponde exclusivamente al commit PR33.
+    # Usar HEAD aqui fallaria tras crear un commit de instrumentacion.
+    sha = BASE_COMMIT
+    subprocess.run(
+        ['git', '-C', str(root), 'cat-file', '-e', sha + '^{commit}'],
+        check=True, capture_output=True,
+    )
     # Crear una copia limpia sin modificar ramas del checkout de pruebas.
     clean = tmp_path / 'clean'
     subprocess.run(['git', 'clone', '--shared', '--no-checkout', str(root), str(clean)], check=True, capture_output=True)
