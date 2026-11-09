@@ -174,6 +174,30 @@ class SecureVectorDB:
             except (RuntimeError, ValueError):
                 self._integrity_compromised = True
 
+    def recover_pending_merkle(
+        self,
+        *,
+        trusted_root_hex: str,
+        evidence_dir: str | Path,
+        operator_id: str,
+        approved: bool = False,
+    ) -> dict[str, str]:
+        """Confirma un pending solo cuando SQLite y Merkle coinciden.
+
+        Se exige raiz autenticada externamente y mantenimiento exclusivo.
+        No reconstruye evidencia divergente ni concede autorizacion de acceso.
+        """
+        from secure_vector_db.p0_recovery import reconcile_matching_pending
+
+        with self._lock:
+            return reconcile_matching_pending(
+                self,
+                trusted_root_hex=trusted_root_hex,
+                evidence_dir=evidence_dir,
+                operator_id=operator_id,
+                approved=approved,
+            )
+
     def _root_metadata(self) -> dict[str, str]:
         """Metadatos persistidos junto con el registro y su raiz."""
         result = {
