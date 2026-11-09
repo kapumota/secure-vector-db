@@ -1,0 +1,50 @@
+{
+  "status": "PASS_LAB_ONLY",
+  "cases": [
+    {
+      "scenario": "before_sidecar",
+      "failure_detected": true,
+      "blocked_after_restart": true,
+      "primary_root_validated": true,
+      "backups_before_reconciliation": [
+        {
+          "source_name": "before_sidecar.sqlite",
+          "backup_name": "principal_antes.sqlite",
+          "sha256": "9670e44df9834c752538c4e586b20d44e71e9a50e176263dbd24a03c70a4bcbf"
+        },
+        {
+          "source_name": "before_sidecar.merkle.sqlite",
+          "backup_name": "auxiliar_antes.sqlite",
+          "sha256": "9ba79806f4376ec64e78f7262d8b0e9fc923ef6c1527f6b449ce54d7ba541fdd"
+        }
+      ],
+      "laboratory_reconciliation": "PASS",
+      "new_writes_after_reconciliation": "PASS",
+      "new_restart": "PASS",
+      "production_recovery_api": "NOT_IMPLEMENTED_BY_THIS_SCRIPT"
+    },
+    {
+      "scenario": "after_sidecar",
+      "failure_detected": true,
+      "blocked_after_restart": true,
+      "primary_root_validated": true,
+      "backups_before_reconciliation": [
+        {
+          "source_name": "after_sidecar.sqlite",
+          "backup_name": "principal_antes.sqlite",
+          "sha256": "9670e44df9834c752538c4e586b20d44e71e9a50e176263dbd24a03c70a4bcbf"
+        },
+        {
+          "source_name": "after_sidecar.merkle.sqlite",
+          "backup_name": "auxiliar_antes.sqlite",
+          "sha256": "e8e77e933f8f93a1d3b621ee16f930c0ea7e30b8d4208a940af5727caf55ecb3"
+        }
+      ],
+      "laboratory_reconciliation": "PASS",
+      "new_writes_after_reconciliation": "PASS",
+      "new_restart": "PASS",
+      "production_recovery_api": "NOT_IMPLEMENTED_BY_THIS_SCRIPT"
+    }
+  ],
+  "policy": "La reconciliacion realizada es una simulacion descartable, no un procedimiento de produccion"
+}
