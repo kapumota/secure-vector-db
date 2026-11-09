@@ -1,0 +1,170 @@
+{
+  "status": "MEASURED_NOT_ACCEPTED",
+  "commits": {
+    "antes": "b18bcba268521668b1bf72314a136a2f095eee7f",
+    "despues": "75c2aef7f5546acf5252d5d990887673698e1854"
+  },
+  "machine": {
+    "system": "Linux",
+    "node": "kapumota",
+    "release": "7.0.0-38-generic",
+    "version": "#38~24.04.4-Ubuntu SMP PREEMPT_DYNAMIC Mon Sep 14 16:37:11 UTC 2",
+    "machine": "x86_64",
+    "processor": "x86_64"
+  },
+  "python": "3.12.3",
+  "sqlite": "3.45.1",
+  "cases": [
+    {
+      "mode": "off",
+      "records": 1000,
+      "operation": "insert",
+      "variants": {
+        "antes": {
+          "median_wall_ms": 13.9451945,
+          "median_cpu_ms": 13.941902500000001
+        },
+        "despues": {
+          "median_wall_ms": 7.816682,
+          "median_cpu_ms": 7.8122135
+        }
+      },
+      "median_paired_wall_change_pct": -44.20067560706127,
+      "median_paired_cpu_change_pct": -44.23609286608593,
+      "wall_better_blocks": 3,
+      "cpu_better_blocks": 3,
+      "blocks": 3,
+      "range_wall_ratio": [
+        0.5567408184948586,
+        0.5962040804911891
+      ],
+      "note": "Fases inclusivas: no deben sumarse por contener llamadas anidadas"
+    },
+    {
+      "mode": "off",
+      "records": 1000,
+      "operation": "replace",
+      "variants": {
+        "antes": {
+          "median_wall_ms": 13.869542,
+          "median_cpu_ms": 13.8672875
+        },
+        "despues": {
+          "median_wall_ms": 7.196515,
+          "median_cpu_ms": 7.1979755
+        }
+      },
+      "median_paired_wall_change_pct": -48.905729753615866,
+      "median_paired_cpu_change_pct": -48.901214305933,
+      "wall_better_blocks": 3,
+      "cpu_better_blocks": 3,
+      "blocks": 3,
+      "range_wall_ratio": [
+        0.49854240387002396,
+        0.5288701963022635
+      ],
+      "note": "Fases inclusivas: no deben sumarse por contener llamadas anidadas"
+    },
+    {
+      "mode": "off",
+      "records": 1000,
+      "operation": "delete",
+      "variants": {
+        "antes": {
+          "median_wall_ms": 14.031593,
+          "median_cpu_ms": 14.02955
+        },
+        "despues": {
+          "median_wall_ms": 7.437896500000001,
+          "median_cpu_ms": 7.438999
+        }
+      },
+      "median_paired_wall_change_pct": -48.724912482849604,
+      "median_paired_cpu_change_pct": -48.72006623408019,
+      "wall_better_blocks": 3,
+      "cpu_better_blocks": 3,
+      "blocks": 3,
+      "range_wall_ratio": [
+        0.4968852617450235,
+        0.5305847122678381
+      ],
+      "note": "Fases inclusivas: no deben sumarse por contener llamadas anidadas"
+    },
+    {
+      "mode": "on",
+      "records": 1000,
+      "operation": "insert",
+      "variants": {
+        "antes": {
+          "median_wall_ms": 30.6910405,
+          "median_cpu_ms": 28.883240999999998
+        },
+        "despues": {
+          "median_wall_ms": 23.8237885,
+          "median_cpu_ms": 21.980741000000002
+        }
+      },
+      "median_paired_wall_change_pct": -23.009559064730066,
+      "median_paired_cpu_change_pct": -24.49632701174005,
+      "wall_better_blocks": 3,
+      "cpu_better_blocks": 3,
+      "blocks": 3,
+      "range_wall_ratio": [
+        0.7515394650835537,
+        0.7924981180218075
+      ],
+      "note": "Fases inclusivas: no deben sumarse por contener llamadas anidadas"
+    },
+    {
+      "mode": "on",
+      "records": 1000,
+      "operation": "replace",
+      "variants": {
+        "antes": {
+          "median_wall_ms": 27.853619000000002,
+          "median_cpu_ms": 26.2143595
+        },
+        "despues": {
+          "median_wall_ms": 20.1744505,
+          "median_cpu_ms": 18.232092
+        }
+      },
+      "median_paired_wall_change_pct": -27.490449489924195,
+      "median_paired_cpu_change_pct": -29.749418593790764,
+      "wall_better_blocks": 3,
+      "cpu_better_blocks": 3,
+      "blocks": 3,
+      "range_wall_ratio": [
+        0.7193512564399628,
+        0.7373359578484875
+      ],
+      "note": "Fases inclusivas: no deben sumarse por contener llamadas anidadas"
+    },
+    {
+      "mode": "on",
+      "records": 1000,
+      "operation": "delete",
+      "variants": {
+        "antes": {
+          "median_wall_ms": 30.3719245,
+          "median_cpu_ms": 28.843839000000003
+        },
+        "despues": {
+          "median_wall_ms": 23.740244500000003,
+          "median_cpu_ms": 22.0415025
+        }
+      },
+      "median_paired_wall_change_pct": -23.35592877296374,
+      "median_paired_cpu_change_pct": -24.565713574036174,
+      "wall_better_blocks": 3,
+      "cpu_better_blocks": 3,
+      "blocks": 3,
+      "range_wall_ratio": [
+        0.7553884538938521,
+        0.796460466859541
+      ],
+      "note": "Fases inclusivas: no deben sumarse por contener llamadas anidadas"
+    }
+  ],
+  "limitation": "No establece causalidad de E/S ni equivalencia de seguridad; fases instrumentadas con sobrecoste"
+}

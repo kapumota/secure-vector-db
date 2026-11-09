@@ -1,0 +1,52 @@
+
+Merkle auxiliar: off
+Registros: 1000
+Bloque completado: 1
+Bloque completado: 2
+Bloque completado: 3
+Bloque completado: 4
+
+Merkle auxiliar: on
+Registros: 10000
+Bloque completado: 1
+Bloque completado: 2
+Bloque completado: 3
+Bloque completado: 4
+
+Resumen de tiempos
+
+Merkle auxiliar: off
+Registros: 1000
+
+Versión: antes
+Mediana tiempo real ms: 176.36
+Mediana tiempo CPU ms: 23.44
+Diferencia real menos CPU ms: 152.91
+Cambios de contexto involuntarios: 0.5
+Bloques de salida: 40.0
+
+Versión: despues
+Mediana tiempo real ms: 179.14
+Mediana tiempo CPU ms: 12.02
+Diferencia real menos CPU ms: 167.12
+Cambios de contexto involuntarios: 0.0
+Bloques de salida: 40.0
+
+Merkle auxiliar: on
+Registros: 10000
+
+Versión: antes
+Mediana tiempo real ms: 666.09
+Mediana tiempo CPU ms: 452.15
+Diferencia real menos CPU ms: 213.94
+Cambios de contexto involuntarios: 6.5
+Bloques de salida: 272.0
+
+Versión: despues
+Mediana tiempo real ms: 770.67
+Mediana tiempo CPU ms: 348.21
+Diferencia real menos CPU ms: 422.46
+Cambios de contexto involuntarios: 2.5
+Bloques de salida: 272.0
+
+Archivo de mediciones: /home/c-lara/svdb-p0-diagnostico-20261108-231749/mediciones.jsonl
